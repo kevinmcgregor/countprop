@@ -3,5 +3,5 @@ if (!require(devtools)) {
   install.packages("devtools")
   library(devtools)
 }
-install_github("kevinmcgregor/countprops", dependencies=TRUE)
+install_github("kevinmcgregor/countprop", dependencies=TRUE)
 ```

@@ -20,7 +20,7 @@ various penalization parameters \code{lambda}.
 }
 \examples{
 data(singlecell)
-mle <- mleLR(singlecell, lambda.gl=0.5)
+mle <- mlePath(singlecell, tol=1e-4, tol.nr=1e-4, n.lambda = 2, n.cores = 1)
 
 ebicPlot(mle, xlog = TRUE)
 

@@ -31,11 +31,11 @@ Taylor-series approximation. This function differs from the function
 \code{Logx Variance-Covariance} in that the resultant matrix includes a reference category.
 }
 \examples{
-mu <- mle$est.min$mu
-Sigma <- mle$est.min$Sigma
+data(singlecell)
+mle <- mleLR(singlecell)
+mu <- mle$mu
+Sigma <- mle$Sigma
 
-#Second order approximation of the variance-covariance matrix of the log of the data,
-#with an alr transformation.
-logVarTaylorFull(mu, Sigma, transf="alr", order="second")
+logVarTaylorFull(mu, Sigma)
 
 }

@@ -29,11 +29,11 @@
 #'
 #' @examples
 #' data(singlecell)
-#' mle_dat <- mleLR(singlecell, lambda.gl=0.5)
+#' mle <- mleLR(singlecell)
 #'
-#' mle_dat$mu
-#' mle_dat$Sigma
-#' mle_dat$ebic
+#' mle$mu
+#' mle$Sigma
+#' mle$ebic
 #'
 #' @importFrom glasso glasso
 #' @importFrom compositions alr
@@ -160,6 +160,7 @@ wrapMLE <- function(x) {
 #' Sigma.hat <- mle.sim$est.min$Sigma
 #'
 #' @importFrom compositions cov
+#' @importFrom parallel mclapply
 #'
 #' @export
 #'
@@ -190,10 +191,8 @@ mlePath <- function(y, max.iter=10000, max.iter.nr=100, tol=1e-6, tol.nr=1e-6, l
   if (is.null(n.cores)) n.cores <- parallel::detectCores()
 
   est <- parallel::mclapply(m.pars, wrapMLE, mc.cores = n.cores)
-
   ebic.vec <- unlist(lapply(est, function(x){x$ebic}))
   wm <- which.min(ebic.vec)
-
   est.min <- est[[wm]]
 
   return(list(est=est, est.min=est.min,
@@ -267,6 +266,7 @@ hess <- function(v, ni, Sigma.inv) {
 #' @export
 #'
 logLik <- function(v, y, ni, S, invSigma) {
+  n <- NROW(y)
   n.sp <- NCOL(y)
   rs <- log(rowSums(exp(v)+1))
   ldet <- determinant(invSigma, logarithm = TRUE)$modulus
@@ -298,8 +298,8 @@ logLik <- function(v, y, ni, S, invSigma) {
 #' data(singlecell)
 #' mle <- mleLR(singlecell, lambda.gl=0.5)
 #' log.lik_1 <- mle$est[[1]]$log.lik
-#' n <- NROW(dat.ss)
-#' k <- NCOL(dat.ss)
+#' n <- NROW(singlecell)
+#' k <- NCOL(singlecell)
 #' df_1 <- mle$est[[1]]$df
 #'
 #' ebic(log.lik_1, n, k, df_1, 0.1)
@@ -322,7 +322,7 @@ ebic <- function(l, n, d, df, gamma) {
 #'
 #' @examples
 #' data(singlecell)
-#' mle <- mleLR(singlecell, lambda.gl=0.5)
+#' mle <- mlePath(singlecell, tol=1e-4, tol.nr=1e-4, n.lambda = 2, n.cores = 1)
 #'
 #' ebicPlot(mle, xlog = TRUE)
 #'

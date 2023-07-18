@@ -55,10 +55,10 @@ This function is also used within the \code{mlePath()} function.
 }
 \examples{
 data(singlecell)
-mle_dat <- mleLR(singlecell, lambda.gl=0.5)
+mle <- mleLR(singlecell)
 
-mle_dat$mu
-mle_dat$Sigma
-mle_dat$ebic
+mle$mu
+mle$Sigma
+mle$ebic
 
 }

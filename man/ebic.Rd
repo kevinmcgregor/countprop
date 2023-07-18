@@ -36,8 +36,8 @@ The penalization parameter lambda controls the sparsity of Sigma.
 data(singlecell)
 mle <- mleLR(singlecell, lambda.gl=0.5)
 log.lik_1 <- mle$est[[1]]$log.lik
-n <- NROW(dat.ss)
-k <- NCOL(dat.ss)
+n <- NROW(singlecell)
+k <- NCOL(singlecell)
 df_1 <- mle$est[[1]]$df
 
 ebic(log.lik_1, n, k, df_1, 0.1)

@@ -41,11 +41,10 @@ Estimates the variation matrix of count compositional data using the proportions
 of a count compositional dataset.
 }
 \examples{
-n.g <- ncol(dat.ss)
+#' data(singlecell)
 
-naiveVariation(dat.ss)[-n.g,-n.g] #Standard naive estimate of the variance
-naiveVariation(dat.ss, type="phi")[-n.g,-n.g] #Logit-Normal based naive estimate of phi
-naiveVariation(dat.ss, type="phis")[-n.g,-n.g] #Logit-Normal based naive estimate of phis
-naiveVariation(dat.ss, type="rho")[-n.g,-n.g] #Logit-Normal based naive estimate of rho
+naiveVariation(singlecell)
+naiveVariation(singlecell, type="phi")
+naiveVariation(singlecell, type="rho")
 
 }

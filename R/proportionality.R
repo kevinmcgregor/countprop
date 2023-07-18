@@ -14,13 +14,14 @@
 #' @return An estimation of the variation matrix, \code{V}.
 #'
 #' @examples
-#' mu.hat <- mle$est.min$mu
-#' Sigma.hat <- mle$est.min$Sigma
+#' data(singlecell)
+#' mle <- mleLR(singlecell)
+#' mu.hat <- mle$mu
+#' Sigma.hat <- mle$Sigma
 #'
-#' logitNormalVariation(mu.hat, Sigma.hat) #Standard logit-Normal estimates of variance
-#' logitNormalVariation(mu.hat, Sigma.hat, type="phi", order="second") #Logit-Normal based estimate of phi
-#' logitNormalVariation(mu.hat, Sigma.hat, type="phis", order="second") #Logit-Normal based estimate of phis
-#' logitNormalVariation(mu.hat, Sigma.hat, type="rho", order="second") #Logit-Normal based estimate of rho
+#' logitNormalVariation(mu.hat, Sigma.hat)
+#' logitNormalVariation(mu.hat, Sigma.hat, type="phi")
+#' logitNormalVariation(mu.hat, Sigma.hat, type="rho")
 #'
 #' @export
 logitNormalVariation <- function(mu, Sigma, type=c("standard","phi", "phis","rho"),
@@ -76,12 +77,11 @@ logitNormalVariation <- function(mu, Sigma, type=c("standard","phi", "phis","rho
 #' @return The naive variation matrix, \code{v}.
 #'
 #' @examples
-#' n.g <- ncol(dat.ss)
+#' #' data(singlecell)
 #'
-#' naiveVariation(dat.ss)[-n.g,-n.g] #Standard naive estimate of the variance
-#' naiveVariation(dat.ss, type="phi")[-n.g,-n.g] #Logit-Normal based naive estimate of phi
-#' naiveVariation(dat.ss, type="phis")[-n.g,-n.g] #Logit-Normal based naive estimate of phis
-#' naiveVariation(dat.ss, type="rho")[-n.g,-n.g] #Logit-Normal based naive estimate of rho
+#' naiveVariation(singlecell)
+#' naiveVariation(singlecell, type="phi")
+#' naiveVariation(singlecell, type="rho")
 #'
 #' @export
 #'
@@ -139,12 +139,12 @@ naiveVariation <- function(counts, pseudo.count=0, type=c("standard","phi", "phi
 #' @return The estimated variance-covariance matrix, \code{logx}.
 #'
 #' @examples
-#' mu <- mle$est.min$mu
-#' Sigma <- mle$est.min$Sigma
+#' data(singlecell)
+#' mle <- mleLR(singlecell)
+#' mu <- mle$mu
+#' Sigma <- mle$Sigma
 #'
-#' #Second order approximation of the variance-covariance matrix of the log of the data,
-#' #with an alr transformation.
-#' logVarTaylorFull(mu, Sigma, transf="alr", order="second")
+#' logVarTaylorFull(mu, Sigma)
 #'
 #' @export
 #'

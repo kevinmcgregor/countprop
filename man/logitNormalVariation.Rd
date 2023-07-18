@@ -31,12 +31,13 @@ based on a multinomial logit-Normal distribution. Estimate is performed using
 only the parameters of the distribution.
 }
 \examples{
-mu.hat <- mle$est.min$mu
-Sigma.hat <- mle$est.min$Sigma
+data(singlecell)
+mle <- mleLR(singlecell)
+mu.hat <- mle$mu
+Sigma.hat <- mle$Sigma
 
-logitNormalVariation(mu.hat, Sigma.hat) #Standard logit-Normal estimates of variance
-logitNormalVariation(mu.hat, Sigma.hat, type="phi", order="second") #Logit-Normal based estimate of phi
-logitNormalVariation(mu.hat, Sigma.hat, type="phis", order="second") #Logit-Normal based estimate of phis
-logitNormalVariation(mu.hat, Sigma.hat, type="rho", order="second") #Logit-Normal based estimate of rho
+logitNormalVariation(mu.hat, Sigma.hat)
+logitNormalVariation(mu.hat, Sigma.hat, type="phi")
+logitNormalVariation(mu.hat, Sigma.hat, type="rho")
 
 }

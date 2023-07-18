@@ -1,6 +1,6 @@
-#' Maximum Likelihood Estimate
+#' Maximum Likelihood Estimate for multinomial logit-normal model
 #'
-#' Returns the maximum likelihood estimates of multinomial logit-Normal model
+#' Returns the maximum likelihood estimates of multinomial logit-normal model
 #' parameters given a count-compositional dataset. The MLE procedure is based on the
 #' multinomial logit-Normal distribution, using the EM algorithm from Hoff (2003).
 #'
@@ -28,13 +28,16 @@
 #' @note This function is also used within the \code{mlePath()} function.
 #'
 #' @examples
-#' n <- 100
-#' mle_dat <- mleLR(dat.ss, lambda.gl=0.5)
+#' data(singlecell)
+#' mle_dat <- mleLR(singlecell, lambda.gl=0.5)
 #'
-#' mle_dat$mu #mle mu of dat.ss
-#' mle_dat$Sigma #mle Sigma of dat.ss
-#' mle_dat$ebic #ebic of the fitted model
+#' mle_dat$mu
+#' mle_dat$Sigma
+#' mle_dat$ebic
 #'
+#' @importFrom glasso glasso
+#' @importFrom compositions alr
+#' @importFrom compositions cov
 #'
 #' @export
 #'
@@ -44,7 +47,7 @@ mleLR <- function(y, max.iter=10000, max.iter.nr=100, tol=1e-6, tol.nr=1e-6,
   k <- NCOL(y)
   ni <- rowSums(y)
   pseudo.count <- 0.1
-  v <- unclass(compositions::alr(y+pseudo.count))
+  v <- unclass(alr(y+pseudo.count))
   attr(v, "orig") <- NULL
   attr(v, "V") <- NULL
   colnames(v) <- NULL
@@ -82,7 +85,7 @@ mleLR <- function(y, max.iter=10000, max.iter.nr=100, tol=1e-6, tol.nr=1e-6,
     mu.old <- mu
     mu <- colMeans(v)
     Sigma.inv.old <- Sigma.inv
-    gl <- suppressWarnings(glasso::glasso(compositions::cov(v), lambda.gl))
+    gl <- suppressWarnings(glasso(compositions::cov(v), lambda.gl))
     Sigma.inv <- gl$wi
     Sigma <- gl$w
     count <- count+1
@@ -150,13 +153,13 @@ wrapMLE <- function(x) {
 #' The penalization parameter lambda controls the sparsity of Sigma.
 #'
 #' @examples
-#' n <- 100
-#' mle.sim <- mlePath(dat.ss, tol=1e-4, tol.nr=1e-4, n.lambda = 8, lambda.min.ratio = 0.01, gamma = 0.1, n.cores = 1)
+#' data(singlecell)
+#' mle.sim <- mlePath(singlecell, tol=1e-4, tol.nr=1e-4, n.lambda = 2, n.cores = 1)
 #'
-#' mu.hat <- mle.sim$est.min$mu #optimal mle of mu based on ebic
-#' Sigma.hat <- mle.sim$est.min$Sigma #optimal mle of Sigma based on ebic
-#' Sigma.hat <- mle.sim$est.min$ebic #minimum ebic
+#' mu.hat <- mle.sim$est.min$mu
+#' Sigma.hat <- mle.sim$est.min$Sigma
 #'
+#' @importFrom compositions cov
 #'
 #' @export
 #'
@@ -171,7 +174,7 @@ mlePath <- function(y, max.iter=10000, max.iter.nr=100, tol=1e-6, tol.nr=1e-6, l
     pc <- 0.1
     alr.y <- log(y[,-k]+pc) - log(y[,k]+pc)
     d <- NCOL(alr.y)
-    S <- compositions::cov(alr.y)
+    S <- cov(alr.y)
     lmax <- max(max(S - diag(d)), -min(S - diag(d)))
     lmin <- lambda.min.ratio*lmax
     lambda.gl <- exp(seq(log(lmin), log(lmax), length.out=n.lambda))
@@ -235,25 +238,6 @@ hess <- function(v, ni, Sigma.inv) {
 }
 
 
-#' Gaussian Log-Likelihood
-#'
-#' Calculates the Gaussian log-likelihood, under the multinomial logit-Normal model.
-#'
-#' @param v Count-compositional dataset which has been transformed by the additive
-#' logratio
-#' @param S Covariance of \code{v}
-#' @param invSigma Inverse of the Sigma matrix
-#'
-#' @return The estimated Gaussian log-likelihood under the Multinomial logit-Normal distribution.
-#'
-#'
-#'
-logLikG <- function(v, S, invSigma) {
-  n <- NROW(v)
-  ldet <- determinant(invSigma, logarithm = TRUE)$modulus
-  n*0.5*(ldet - sum(diag(S%*%invSigma)))
-}
-
 #' Log-Likelihood
 #'
 #' Calculates the log-likelihood, under the multinomial logit-Normal model.
@@ -265,6 +249,20 @@ logLikG <- function(v, S, invSigma) {
 #' @param invSigma The inverse of the Sigma matrix
 #'
 #' @return The estimated log-likelihood under the Multinomial logit-Normal distribution.
+#'
+#'
+#' @examples
+#' data(singlecell)
+#' mle.sim <- mlePath(singlecell, tol=1e-4, tol.nr=1e-4, n.lambda = 2, n.cores = 1)
+#'
+#' n <- NROW(singlecell)
+#'
+#'
+#' logLik(mle.sim$est.min$v,
+#'       singlecell,
+#'       n,
+#'       cov(mle.sim$est.min$v),
+#'       mle.sim$est.min$Sigma.inv)
 #'
 #' @export
 #'
@@ -297,12 +295,14 @@ logLik <- function(v, y, ni, S, invSigma) {
 #' The penalization parameter lambda controls the sparsity of Sigma.
 #'
 #' @examples
+#' data(singlecell)
+#' mle <- mleLR(singlecell, lambda.gl=0.5)
 #' log.lik_1 <- mle$est[[1]]$log.lik
 #' n <- NROW(dat.ss)
 #' k <- NCOL(dat.ss)
 #' df_1 <- mle$est[[1]]$df
 #'
-#' ebic(log.lik_1, n, k, df_1, gamma=0.1)
+#' ebic(log.lik_1, n, k, df_1, 0.1)
 #'
 #' @export
 #'
@@ -321,8 +321,8 @@ ebic <- function(l, n, d, df, gamma) {
 #' @return Plot of the EBIC (y-axis) against each lambda (x-axis).
 #'
 #' @examples
-#' mle$ebic #y-axis of ebic plot
-#' log(mle$lambda.gl) #x-axis of ebic plot
+#' data(singlecell)
+#' mle <- mleLR(singlecell, lambda.gl=0.5)
 #'
 #' ebicPlot(mle, xlog = TRUE)
 #'

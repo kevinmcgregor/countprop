@@ -8,3 +8,5 @@ Description: Calculates metrics of proportionality using the logit-normal multin
 License: GPL (>=3)
 Encoding: UTF-8
 LazyData: true
+Imports: glasso, compositions
+RoxygenNote: 7.2.3

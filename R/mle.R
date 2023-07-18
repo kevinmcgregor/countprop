@@ -105,14 +105,7 @@ mleLR <- function(y, max.iter=10000, max.iter.nr=100, tol=1e-6, tol.nr=1e-6,
 
 
 
-#' Wrapper for mleLR()
-#'
-#' Executes a function call to \code{mlePath()}. Helps with the \code{mclapply()}
-#' within \code{mlePath()}
-#'
-#' @param x Input argument for the \code{MLE Function}
-#'
-#'
+# Wrapper for mleLR() for use in mclapply()
 wrapMLE <- function(x) {
   do.call(mleLR, x)
 }
@@ -199,37 +192,13 @@ mlePath <- function(y, max.iter=10000, max.iter.nr=100, tol=1e-6, tol.nr=1e-6, l
               lambda.gl=lambda.gl, min.idx=wm, ebic=ebic.vec))
 }
 
-#' Gradient of Normal Random Variables
-#'
-#' Calculates the gradient of the normal random variables, on the logit scale.
-#'
-#' @param v Additive logratio (alr) transform of y
-#' @param y Count compositional dataset
-#' @param ni Row sums of y
-#' @param mu Mu vector of y
-#' @param Sigma.inv Sigma inverse matrix of y
-#'
-#' @return The gradient vector of Normal random variables.
-#'
-#'
-#'
+# Gradient
 grad <- function(v, y, ni, mu, Sigma.inv) {
   ev <- exp(v)
   c(y - ni*ev/(1+sum(ev)) - Sigma.inv%*%(v-mu))
 }
 
-#' Hessian
-#'
-#' Calculates the hessian matrix.
-#'
-#' @param v Count-compositional dataset which has been transformed by the additive logratio
-#' @param ni Row sums of the raw data
-#' @param Sigma.inv Inverse of the Sigma matrix
-#'
-#' @return The hessian matrix.
-#'
-#'
-#'
+# Hessian
 hess <- function(v, ni, Sigma.inv) {
   ev <- exp(v)
   p.hat <- ev/(1+sum(ev))

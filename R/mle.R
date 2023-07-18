@@ -1,5 +1,3 @@
-#globalVariables(c("n", "mu", "Sigma", "J"))
-
 #' Maximum Likelihood Estimate
 #'
 #' Returns the maximum likelihood estimates of multinomial logit-Normal model
@@ -14,6 +12,7 @@
 #' @param lambda.gl Penalization parameter lambda, for the graphical lasso penalty. Controls
 #' the sparsity of Sigma
 #' @param gamma Gamma value for EBIC calculation of the log-likelihood
+#' @param verbose If TRUE, print information about
 #'
 #' @return The additive log-ratio of y (\code{v}); maximum likelihood estimates of
 #' \code{mu}, \code{Sigma}, and \code{Sigma.inv};
@@ -39,13 +38,11 @@
 #'
 #' @export
 #'
-mleLR <- function(y, max.iter=10000, max.iter.nr=100, tol=1e-6, tol.nr=1e-6, lambda.gl=0, gamma=0.1) {
+mleLR <- function(y, max.iter=10000, max.iter.nr=100, tol=1e-6, tol.nr=1e-6,
+                  lambda.gl=0, gamma=0.1, verbose=FALSE) {
   n <- NROW(y)
   k <- NCOL(y)
   ni <- rowSums(y)
-  # observed proportions
-  #p.hat <- y/rowSums(y)
-  # initialize
   pseudo.count <- 0.1
   v <- unclass(compositions::alr(y+pseudo.count))
   attr(v, "orig") <- NULL
@@ -54,33 +51,20 @@ mleLR <- function(y, max.iter=10000, max.iter.nr=100, tol=1e-6, tol.nr=1e-6, lam
   mu <- rep(0, k-1)
   mu.old <- mu+1
 
-  # Sigma <- cov(v)
-  # Sigma.old <- Sigma+0.1
-  # i.inv <- array(0, dim=c(k-1,k-1,n))
-
-  Sigma.inv <- diag(k-1) #MASS::ginv(cov(v))
+  Sigma.inv <- diag(k-1)
   Sigma.inv.old <- Sigma.inv+0.1
   i.inv <- array(0, dim=c(k-1,k-1,n))
 
   count <- 1
-  #while(sum(abs((mu-mu.old)/mu.old))>tol & sum(abs((diag(Sigma.inv)-diag(Sigma.inv.old))/diag(Sigma.inv.old)))>tol) {
   while(max(abs((mu-mu.old)/mu.old))>tol & max(abs((diag(Sigma.inv)-diag(Sigma.inv.old))/diag(Sigma.inv.old)))>tol) {
-    if (count%%10==0) {
-      cat("Iter=", count, "\n")
+    if (count%%10==0 & verbose) {
       cat("Error=", max(abs((mu-mu.old)/mu.old)), "\n")
-      #print(Sigma[1,1])
-      print(mu)
-      #print(eigen(h)$values)
     }
     if (count>max.iter) stop("Maximum number of iterations reached")
 
-    #Sigma.inv <- qr.solve(Sigma)
-
     for (i in 1:n) {
-      # cat("i=", i, "\n")
       g <- rep(1, k-1)
       count.nr <- 1
-      #while(abs(sum(g))>tol.nr) {
       while(max(abs(g))>tol.nr) {
         if (count.nr>max.iter.nr) {
           print(g)
@@ -88,7 +72,6 @@ mleLR <- function(y, max.iter=10000, max.iter.nr=100, tol=1e-6, tol.nr=1e-6, lam
         }
         g <- grad(v[i,], y[i,-k], ni[i], mu, Sigma.inv)
         h <- hess(v[i,], ni[i], Sigma.inv)
-        #if (any(is.complex(eigen(h)$values))) browser()
         i.inv[,,i] <- qr.solve(-h)
         # Newton-Raphson step
         v[i,] <- v[i,] + i.inv[,,i]%*%g
@@ -98,19 +81,10 @@ mleLR <- function(y, max.iter=10000, max.iter.nr=100, tol=1e-6, tol.nr=1e-6, lam
 
     mu.old <- mu
     mu <- colMeans(v)
-    #Sigma.old <- Sigma
     Sigma.inv.old <- Sigma.inv
-    #Sigma.inv <- huge::huge(v, lambda.gl, method="glasso", verbose=FALSE)$icov[[1]]
     gl <- suppressWarnings(glasso::glasso(compositions::cov(v), lambda.gl))
     Sigma.inv <- gl$wi
     Sigma <- gl$w
-    # Sigma <- matrix(0, k-1, k-1)
-    # for (i in 1:n){
-    #   # Need to update Hessian to final value of v[i,]
-    #   h <- hess(v[i,], ni[i], Sigma.inv)
-    #   neg.hess.inv <- qr.solve(-h)
-    #   Sigma <- Sigma + (tcrossprod(v[i,]-mu) + neg.hess.inv)/n
-    # }
     count <- count+1
 
   }
@@ -118,13 +92,10 @@ mleLR <- function(y, max.iter=10000, max.iter.nr=100, tol=1e-6, tol.nr=1e-6, lam
   S <- compositions::cov(v)
 
   log.lik <- logLik(v, y, ni, S, Sigma.inv)
-  # Currently only using Gaussian part for loglik
-  #log.lik <- logLikG(v, S, Sigma.inv)
 
   df <- sum(Sigma.inv[lower.tri(Sigma.inv)]!=0)
   eb <- ebic(log.lik, n, k-1, df, gamma)
 
-  # return(list(v=v, mu=mu, Sigma=Sigma, var.v=neg.hess.inv))
   return(list(v=v, mu=mu, Sigma.inv=Sigma.inv, Sigma=Sigma, log.lik=log.lik,
               ebic=eb, df=df))
 }
@@ -295,7 +266,7 @@ logLikG <- function(v, S, invSigma) {
 #'
 #' @return The estimated log-likelihood under the Multinomial logit-Normal distribution.
 #'
-#'
+#' @export
 #'
 logLik <- function(v, y, ni, S, invSigma) {
   n.sp <- NCOL(y)

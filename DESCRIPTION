@@ -1,6 +1,6 @@
 Package: countprop
 Type: Package
-Title: Calculate model-based metrics of proportionality on count-based compositional data
+Title: Calculate Model-Based Metrics of Proportionality on Count-Based Compositional Data
 Version: 0.1.0
 Author: Kevin McGregor, Nneka Okaeme
 Maintainer: Kevin McGregor <kevinmcg@yorku.ca>

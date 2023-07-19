@@ -9,5 +9,5 @@ License: GPL (>=3)
 Encoding: UTF-8
 LazyData: true
 Depends: R (>= 3.5.0)
-Imports: glasso, compositions
+Imports: glasso, compositions, parallel
 RoxygenNote: 7.2.3

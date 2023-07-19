@@ -1,0 +1,10 @@
+Package: countprop
+Type: Package
+Title: Calculate model-based metrics of proportionality on count-based compositional data
+Version: 0.1.0
+Author: Kevin McGregor, Nneka Okaeme
+Maintainer: Kevin McGregor <kevinmcg@yorku.ca>
+Description: Calculates metrics of proportionality using the logit-normal multinomial model.  Also can provide empirical and plugin estimates of these metrics..
+License: GPL (>=3)
+Encoding: UTF-8
+LazyData: true

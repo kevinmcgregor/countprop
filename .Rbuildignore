@@ -1,2 +1,8 @@
 ^.*\.Rproj$
 ^\.Rproj\.user$
+^\.DS_Store$
+^\.Rhistory$
+^\.gitignore$
+^data/\.DS_Store$
+^Rproj\.user$
+^\.git$

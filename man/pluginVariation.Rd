@@ -16,7 +16,7 @@ pluginVariation(
 \item{counts}{Matrix of counts; samples are rows and features are columns.}
 
 \item{type}{Type of variation metric to be calculated: \code{standard}, \code{phi},
-\code{phis} (a symmetrical version of \code{phi}), or \code{rho}}
+\code{phis} (a symmetrical version of \code{phi}), \code{rho}, or \code{logp} (the variance-covariance matrix of log-transformed proportions).}
 
 \item{order}{The order of the Taylor-series approximation to be used in the
 estimation}
@@ -26,16 +26,13 @@ estimation}
 \item{...}{Optional arguments passed to zero-imputation function \code{cmultRepl()}}
 }
 \value{
-An estimation of the variation matrix, \code{V}.
+An estimate of the requested metric of proportionality.
 }
 \description{
 Estimates the variation matrix of count-compositional data
 based on a the same approximation used in logitNormalVariation()
 only for this function it uses empirical estimates of mu and Sigma.
-Also performs zero-imputation using \code{cmultRepl()} from the
-}
-\details{
-\code{zCompositions} package.
+Also performs zero-imputation using \code{cmultRepl()} from the \code{zCompositions} package.
 }
 \examples{
 data(singlecell)

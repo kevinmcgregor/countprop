@@ -120,8 +120,7 @@ wrapMLE <- function(x) {
 #' mutlinomial logit-Normal distribution under various values
 #' of the penalization parameter \code{lambda}. Parameter \code{lambda} controls
 #' the sparsity of the covariance matrix \code{Sigma}, and penalizes the false
-#' large correlations that may arise in microbiome data when a large
-#' number of OTU-associations are being measured.
+#' large correlations that may arise in high-dimensional data.
 #'
 #' @param y Matrix of counts; samples are rows and features are columns.
 #' @param max.iter Maximum number of iterations
@@ -131,7 +130,7 @@ wrapMLE <- function(x) {
 #' @param lambda.gl Vector of penalization parameters lambda, for the graphical lasso penalty
 #' @param lambda.min.ratio Minimum lambda ratio of the maximum lambda,
 #' used for the sequence of lambdas
-#' @param n.lambda Number of lambda to evaluate different paths for
+#' @param n.lambda Number of lambdas to evaluate the model on
 #' @param n.cores Number of cores to use (for parallel computation)
 #' @param gamma Gamma value for EBIC calculation of the log-likelihood
 #'
@@ -162,7 +161,7 @@ wrapMLE <- function(x) {
 #'
 mlePath <- function(y, max.iter=10000, max.iter.nr=100, tol=1e-6, tol.nr=1e-6, lambda.gl=NULL,
                     lambda.min.ratio=0.1, n.lambda=1,
-                    n.cores=NULL, gamma=0.1) {
+                    n.cores=1, gamma=0.1) {
 
   if (!is.matrix(y) | !is.numeric(y)) stop("y must be a numeric matrix")
 
@@ -185,8 +184,6 @@ mlePath <- function(y, max.iter=10000, max.iter.nr=100, tol=1e-6, tol.nr=1e-6, l
   for (i in 1:n.lam) {
     m.pars[[i]] <- list(y, max.iter, max.iter.nr, tol, tol.nr, lambda.gl[i], gamma)
   }
-
-  if (is.null(n.cores)) n.cores <- parallel::detectCores()
 
   est <- parallel::mclapply(m.pars, wrapMLE, mc.cores = n.cores)
   ebic.vec <- unlist(lapply(est, function(x){x$ebic}))

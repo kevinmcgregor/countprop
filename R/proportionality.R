@@ -1,17 +1,17 @@
 #' Logit Normal Variation
 #'
 #' Estimates the variation matrix of count-compositional data
-#' based on a multinomial logit-Normal distribution. Estimate is performed using
+#' based on a multinomial logit-Normal distribution. Estimation is performed using
 #' only the parameters of the distribution.
 #'
 #' @param mu The mle estimate of the mu matrix
 #' @param Sigma The mle estimate of the Sigma matrix
 #' @param type Type of variation metric to be calculated: \code{standard}, \code{phi},
-#' \code{phis} (a symmetrical version of \code{phi}), or \code{rho}
+#' \code{phis} (a symmetrical version of \code{phi}), \code{rho}, or \code{logp} (the variance-covariance matrix of log-transformed proportions)
 #' @param order The order of the Taylor-series approximation to be used in the
 #' estimation
 #'
-#' @return An estimation of the variation matrix, \code{V}.
+#' @return An estimate of the requested metric of proportionality.
 #'
 #' @examples
 #' data(singlecell)
@@ -66,19 +66,17 @@ logitNormalVariation <- function(mu, Sigma, type=c("standard","phi", "phis","rho
 #' Estimates the variation matrix of count-compositional data
 #' based on a the same approximation used in logitNormalVariation()
 #' only for this function it uses empirical estimates of mu and Sigma.
-#' Also performs zero-imputation using \code{cmultRepl()} from the
-#'
-#' \code{zCompositions} package.
+#' Also performs zero-imputation using \code{cmultRepl()} from the \code{zCompositions} package.
 #'
 #' @param counts Matrix of counts; samples are rows and features are columns.
 #' @param type Type of variation metric to be calculated: \code{standard}, \code{phi},
-#' \code{phis} (a symmetrical version of \code{phi}), or \code{rho}
+#' \code{phis} (a symmetrical version of \code{phi}), \code{rho}, or \code{logp} (the variance-covariance matrix of log-transformed proportions).
 #' @param order The order of the Taylor-series approximation to be used in the
 #' estimation
 #' @param impute.zeros If TRUE, then \code{cmultRepl()} from the \code{zCompositions} package is used to impute zero values in the counts matrix.
 #' @param ... Optional arguments passed to zero-imputation function \code{cmultRepl()}
 #'
-#' @return An estimation of the variation matrix, \code{V}.
+#' @return An estimate of the requested metric of proportionality.
 #'
 #' @importFrom zCompositions cmultRepl
 #' @examples
@@ -126,7 +124,7 @@ pluginVariation <- function(counts, type=c("standard","phi", "phis","rho"),
 #' @param impute.zeros If TRUE, then \code{cmultRepl()} from the \code{zCompositions} package is used to impute zero values in the counts matrix.
 #' @param ... Optional arguments passed to zero-imputation function \code{cmultRepl()}
 #'
-#' @return A matrix containing the proportionality metric of interest calculated naively (empirically).
+#' @return An estimate of the requested metric of proportionality.
 #'
 #' @examples
 #' #' data(singlecell)

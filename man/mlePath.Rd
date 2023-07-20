@@ -13,7 +13,7 @@ mlePath(
   lambda.gl = NULL,
   lambda.min.ratio = 0.1,
   n.lambda = 1,
-  n.cores = NULL,
+  n.cores = 1,
   gamma = 0.1
 )
 }
@@ -33,7 +33,7 @@ mlePath(
 \item{lambda.min.ratio}{Minimum lambda ratio of the maximum lambda,
 used for the sequence of lambdas}
 
-\item{n.lambda}{Number of lambda to evaluate different paths for}
+\item{n.lambda}{Number of lambdas to evaluate the model on}
 
 \item{n.cores}{Number of cores to use (for parallel computation)}
 
@@ -51,8 +51,7 @@ Calculates the maximum likelihood estimates of the parameters for the
 mutlinomial logit-Normal distribution under various values
 of the penalization parameter \code{lambda}. Parameter \code{lambda} controls
 the sparsity of the covariance matrix \code{Sigma}, and penalizes the false
-large correlations that may arise in microbiome data when a large
-number of OTU-associations are being measured.
+large correlations that may arise in high-dimensional data.
 }
 \note{
 If using parallel computing, consider setting \code{n.cores} to be equal

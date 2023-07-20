@@ -25,7 +25,7 @@ naiveVariation(
 \item{...}{Optional arguments passed to zero-imputation function \code{cmultRepl()}}
 }
 \value{
-A matrix containing the proportionality metric of interest calculated naively (empirically).
+An estimate of the requested metric of proportionality.
 }
 \description{
 Naive (empirical) estimates of proportionality metrics using only the

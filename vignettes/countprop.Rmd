@@ -41,8 +41,8 @@ knitr::opts_chunk$set(
 )
 ```
 
-# Introduction
-The \texttt{countprop} package allows estimation of several types of proportionality metrics for count-based compositional data such as 16S, metagenomic, and single-cell sequencing data.  The package includes functions that allow standard empirical estimates of these proportionality metrics, as well as estimates based on the multinomial logit-normal model.
+# Introduction 
+The \texttt{countprop} package allows estimation of several types of proportionality metrics for count-basedcompositional data such as 16S, metagenomic, and single-cell sequencing data.  The package includes functions that allow standard empirical estimates of these proportionality metrics, as well as estimates based on the multinomial logit-normal model.
 
 First, we'll define the model.  Assume $n$ samples and $J+1$ features.  Suppose the counts for sample $i$ for feature $j$ are denoted by $y_{ij}$ for $i=1,\dots,n$ and $j=1,\dots,J+1$.  They are modelled using the multinomial distribution:
 ```{=latex}
@@ -124,7 +124,7 @@ The minimum EBIC now corresponds to the 3rd smallest value of $\lambda$.
 
 # Estimating the proportionality metrics
 
-Once the model parameters have been estimated.
+Once the model parameters have been estimated, the model-based proportionality metrics can be estimated:
 ```{r lnvariation}
 # Variation matrix
 logitNormalVariation(mle3$est.min$mu, mle3$est.min$Sigma)

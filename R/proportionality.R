@@ -59,7 +59,6 @@ logitNormalVariation <- function(mu, Sigma, type=c("standard","phi", "phis","rho
     V <- 2*lv/den
   }
 
-  colnames(V) <- rownames(V) <- names(mu)
   return(V)
 }
 
@@ -174,7 +173,7 @@ naiveVariation <- function(counts, pseudo.count=0, type=c("standard","phi", "phi
 
   if (type=="logp") v <- compositions::cov(l)
 
-  colnames(V) <- rownames(V) <- colnames(counts)
+  colnames(v) <- rownames(v) <- colnames(counts)
   return(v)
 }
 
@@ -221,7 +220,5 @@ logVarTaylorFull <- function(mu, Sigma, transf=c("alr", "clr"), order=c("second"
     mat <- Sigma%*%(tcrossprod(ainv)-diag(ainv))
     t2 <- sum(diag(mat%*%mat))
   }
-  V <- M%*%tcrossprod(Sigma, M) + 0.5*t2
-  colnames(V) <- rownames(V) <- colnames(counts)
-  return(v)
+  M%*%tcrossprod(Sigma, M) + 0.5*t2
 }

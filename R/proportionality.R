@@ -123,7 +123,7 @@ pluginVariation <- function(counts, type=c("standard","phi", "phis","rho"),
 #' @param already.log If \code{FALSE}, the function assumes the counts have not yet been log-transformed and will do the transformation. Otherwise
 #' it will assume that the counts have already been log-transformed.
 #' @param impute.zeros If TRUE, then \code{cmultRepl()} from the \code{zCompositions} package is used to impute zero values in the counts matrix.
-#' @param ...
+#' @param ... Optional arguments passed to zero-imputation function \code{cmultRepl()}
 #'
 #' @return A matrix containing the proportionality metric of interest calculated naively (empirically).
 #'
@@ -143,7 +143,6 @@ naiveVariation <- function(counts, pseudo.count=0, type=c("standard","phi", "phi
   if (!is.logical(impute.zeros)) stop("impute.zeros must be TRUE or FALSE")
   if (!is.logical(impute.zeros)) stop("impute.zeros must be TRUE or FALSE")
   if (already.log & impute.zeros) stop("Cannot impute zeros if already.log=TRUE")
-  if (!is.character(use)) stop("'use' must be a character")
   if (!is.numeric(pseudo.count)) stop("pseudo.count must be numeric")
   if (pseudo.count<0) stop("pseudo.count must be non-negative")
 

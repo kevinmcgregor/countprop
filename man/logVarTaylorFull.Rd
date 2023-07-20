@@ -2,7 +2,7 @@
 % Please edit documentation in R/proportionality.R
 \name{logVarTaylorFull}
 \alias{logVarTaylorFull}
-\title{Full Logx Variance-Covariance}
+\title{Full logp Variance-Covariance}
 \usage{
 logVarTaylorFull(
   mu,
@@ -12,23 +12,22 @@ logVarTaylorFull(
 )
 }
 \arguments{
-\item{mu}{The mean vector of a dataset following the multinomial logit-Normal model}
+\item{mu}{The mean vector of the log-ratio-transformed data (ALR or CLR)}
 
-\item{Sigma}{The sigma matrix of a dataset following the multinomial logit-Normal model}
+\item{Sigma}{The variance-covariance matrix of the log-ratio-transformed data (ALR or CLR)}
 
 \item{transf}{The desired transformation. If \code{transf="alr"} the inverse
-additive logratio transformation is applied. If \code{transf="clr"} the
-inverse centered logratio transformation is applied.}
+additive log-ratio transformation is applied. If \code{transf="clr"} the
+inverse centered log-ratio transformation is applied.}
 
 \item{order}{The desired order of the Taylor Series approximation}
 }
 \value{
-The estimated variance-covariance matrix, \code{logx}.
+The estimated variance-covariance matrix for \code{log p}.
 }
 \description{
-Estimates the variance-covariance of the log of the data, using a
-Taylor-series approximation. This function differs from the function
-\code{Logx Variance-Covariance} in that the resultant matrix includes a reference category.
+Estimates the variance-covariance of the log of the proportions using a
+Taylor-series approximation.
 }
 \examples{
 data(singlecell)

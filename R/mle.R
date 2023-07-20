@@ -43,6 +43,9 @@
 #'
 mleLR <- function(y, max.iter=10000, max.iter.nr=100, tol=1e-6, tol.nr=1e-6,
                   lambda.gl=0, gamma=0.1, verbose=FALSE) {
+
+  if (!is.matrix(y) | !is.numeric(y)) stop("y must be a numeric matrix")
+
   n <- NROW(y)
   k <- NCOL(y)
   ni <- rowSums(y)
@@ -160,6 +163,8 @@ wrapMLE <- function(x) {
 mlePath <- function(y, max.iter=10000, max.iter.nr=100, tol=1e-6, tol.nr=1e-6, lambda.gl=NULL,
                     lambda.min.ratio=0.1, n.lambda=1,
                     n.cores=NULL, gamma=0.1) {
+
+  if (!is.matrix(y) | !is.numeric(y)) stop("y must be a numeric matrix")
 
   k <- NCOL(y)
 
@@ -284,7 +289,7 @@ ebic <- function(l, n, d, df, gamma) {
 #' Plots the extended Bayesian information criterion (EBIC) of the model fit for
 #' various penalization parameters \code{lambda}.
 #'
-#' @param fit The model fit
+#' @param fit The model fit object from \code{mleLR()}
 #' @param xlog TRUE or FALSE. Renders plot with the x-axis in the log-scale if \code{TRUE}
 #' @param col Colour of the plot (character)
 #'

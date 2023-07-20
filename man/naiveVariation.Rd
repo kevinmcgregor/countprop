@@ -2,43 +2,38 @@
 % Please edit documentation in R/proportionality.R
 \name{naiveVariation}
 \alias{naiveVariation}
-\title{Naive Variation}
+\title{Naive (Empirical) Variation}
 \usage{
 naiveVariation(
   counts,
   pseudo.count = 0,
-  type = c("standard", "phi", "phis", "rho", "logx"),
-  use = "everything",
-  set.inf.na = TRUE,
-  already.log = FALSE
+  type = c("standard", "phi", "phis", "rho", "logp"),
+  already.log = FALSE,
+  impute.zeros = TRUE,
+  ...
 )
 }
 \arguments{
-\item{counts}{Count-compositional dataset}
+\item{counts}{Matrix of counts; samples are rows and features are columns}
 
-\item{pseudo.count}{Scaler value added to the data matrix to prevent infinite
-values caused by taking the log of the counts}
+\item{pseudo.count}{Positive count to be added to all elements of count matrix.}
 
 \item{type}{Type of variation metric to be calculated: \code{standard}, \code{phi},
-\code{phis} (a symmetrical version of \code{phi}), \code{rho}, or \code{logx}}
+\code{phis} (a symmetric version of \code{phi}), \code{rho}, or \code{logp} (the variance-covariance matrix of log-transformed proportions)}
 
-\item{use}{If equal to \code{"everything"} and there are no infinite values after
-taking the log the calculation will use all data. If equal to \code{"everything"}
-and there are infinite values after taking the log it is recommended to  run
-the function again, instead setting the \code{use} parameter to \code{"pairwise.complete.obs"}}
+\item{already.log}{If \code{FALSE}, the function assumes the counts have not yet been log-transformed and will do the transformation. Otherwise
+it will assume that the counts have already been log-transformed.}
 
-\item{set.inf.na}{If \code{TRUE}, sets any infinite values in \code{counts} to \code{NA}}
+\item{impute.zeros}{If TRUE, then \code{cmultRepl()} from the \code{zCompositions} package is used to impute zero values in the counts matrix.}
 
-\item{already.log}{If \code{FALSE}, the counts have not been transformed by
-by the log. This transformation is of the form \eqn{log(frac{X_{ij}}{s_{i}})}, where
-\eqn{s_{i} = \sum{n=1}^{j} X_{in}}, where \eqn{X_{ij}} is element \eqn{counts[i,j]}}
+\item{...}{Optional arguments passed to zero-imputation function \code{cmultRepl()}}
 }
 \value{
-The naive variation matrix, \code{v}.
+A matrix containing the proportionality metric of interest calculated naively (empirically).
 }
 \description{
-Estimates the variation matrix of count compositional data using the proportions
-of a count compositional dataset.
+Naive (empirical) estimates of proportionality metrics using only the
+observed counts.
 }
 \examples{
 #' data(singlecell)

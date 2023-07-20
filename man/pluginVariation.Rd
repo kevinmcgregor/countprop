@@ -8,17 +8,20 @@ pluginVariation(
   counts,
   type = c("standard", "phi", "phis", "rho"),
   order = c("second", "first"),
+  impute.zeros = TRUE,
   ...
 )
 }
 \arguments{
-\item{counts}{Matrix of counts; samples are rows and features are columns}
+\item{counts}{Matrix of counts; samples are rows and features are columns.}
 
 \item{type}{Type of variation metric to be calculated: \code{standard}, \code{phi},
 \code{phis} (a symmetrical version of \code{phi}), or \code{rho}}
 
 \item{order}{The order of the Taylor-series approximation to be used in the
 estimation}
+
+\item{impute.zeros}{If TRUE, then \code{cmultRepl()} from the \code{zCompositions} package is used to impute zero values in the counts matrix.}
 
 \item{...}{Optional arguments passed to zero-imputation function \code{cmultRepl()}}
 }

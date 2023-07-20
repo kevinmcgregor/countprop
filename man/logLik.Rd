@@ -7,7 +7,7 @@
 logLik(v, y, ni, S, invSigma)
 }
 \arguments{
-\item{v}{The additive logratio transform of y}
+\item{v}{The additive log-ratio transform of y}
 
 \item{y}{Compositional dataset}
 

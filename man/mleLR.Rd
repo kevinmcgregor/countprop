@@ -16,7 +16,7 @@ mleLR(
 )
 }
 \arguments{
-\item{y}{Count-compositional dataset}
+\item{y}{Matrix of counts; samples are rows and features are columns.}
 
 \item{max.iter}{Maximum number of iterations}
 
@@ -31,7 +31,7 @@ the sparsity of Sigma}
 
 \item{gamma}{Gamma value for EBIC calculation of the log-likelihood}
 
-\item{verbose}{If TRUE, print information about}
+\item{verbose}{If TRUE, print information as the functions run}
 }
 \value{
 The additive log-ratio of y (\code{v}); maximum likelihood estimates of

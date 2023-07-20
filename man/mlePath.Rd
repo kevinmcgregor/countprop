@@ -18,7 +18,7 @@ mlePath(
 )
 }
 \arguments{
-\item{y}{Count-compositional dataset}
+\item{y}{Matrix of counts; samples are rows and features are columns.}
 
 \item{max.iter}{Maximum number of iterations}
 

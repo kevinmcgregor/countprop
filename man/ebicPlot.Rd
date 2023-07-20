@@ -4,7 +4,7 @@
 \alias{ebicPlot}
 \title{Extended Bayesian Information Criterion Plot}
 \usage{
-ebicPlot(fit, xlog = FALSE, col = "darkred")
+ebicPlot(fit, xlog = TRUE, col = "darkred")
 }
 \arguments{
 \item{fit}{The model fit object from \code{mleLR()}}

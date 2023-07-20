@@ -4,7 +4,7 @@
 #' parameters given a count-compositional dataset. The MLE procedure is based on the
 #' multinomial logit-Normal distribution, using the EM algorithm from Hoff (2003).
 #'
-#' @param y Count-compositional dataset
+#' @param y Matrix of counts; samples are rows and features are columns.
 #' @param max.iter Maximum number of iterations
 #' @param max.iter.nr Maximum number of Newton-Raphson iterations
 #' @param tol Stopping rule
@@ -12,7 +12,7 @@
 #' @param lambda.gl Penalization parameter lambda, for the graphical lasso penalty. Controls
 #' the sparsity of Sigma
 #' @param gamma Gamma value for EBIC calculation of the log-likelihood
-#' @param verbose If TRUE, print information about
+#' @param verbose If TRUE, print information as the functions run
 #'
 #' @return The additive log-ratio of y (\code{v}); maximum likelihood estimates of
 #' \code{mu}, \code{Sigma}, and \code{Sigma.inv};
@@ -123,7 +123,7 @@ wrapMLE <- function(x) {
 #' large correlations that may arise in microbiome data when a large
 #' number of OTU-associations are being measured.
 #'
-#' @param y Count-compositional dataset
+#' @param y Matrix of counts; samples are rows and features are columns.
 #' @param max.iter Maximum number of iterations
 #' @param max.iter.nr Maximum number of Newton-Raphson iterations
 #' @param tol Stopping rule
@@ -215,7 +215,7 @@ hess <- function(v, ni, Sigma.inv) {
 #'
 #' Calculates the log-likelihood, under the multinomial logit-Normal model.
 #'
-#' @param v The additive logratio transform of y
+#' @param v The additive log-ratio transform of y
 #' @param y Compositional dataset
 #' @param ni The row sums of y
 #' @param S Covariance of \code{v}
@@ -304,7 +304,7 @@ ebic <- function(l, n, d, df, gamma) {
 #' @export
 #'
 #'
-ebicPlot <- function(fit, xlog=FALSE, col="darkred") {
+ebicPlot <- function(fit, xlog=TRUE, col="darkred") {
   if (xlog) {
     x.ax <- log(fit$lambda.gl)
   } else {

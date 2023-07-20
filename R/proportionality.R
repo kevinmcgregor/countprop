@@ -42,6 +42,7 @@ logitNormalVariation <- function(mu, Sigma, type=c("standard","phi", "phis","rho
   d.S <- diag(Sigma)
   V <- tcrossprod(d.S, ones) + tcrossprod(ones, d.S) - 2*Sigma
   V <- rbind(cbind(V, d.S), c(d.S, 0))
+  rownames(V) <- colnames(V) <- NULL
 
   if (type=="phi") {
     lv <- logVarTaylorFull(mu, Sigma, order=order)

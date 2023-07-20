@@ -310,6 +310,9 @@ ebicPlot <- function(fit, xlog=TRUE, col="darkred") {
   } else {
     x.ax <- fit$lambda.gl
   }
+
+  xlab <- ifelse(xlog, "log(lambda)", "lambda")
+
   plot(x.ax, fit$ebic, type="o", pch=19, cex=0.5,
-       col=col, xlab="log(lambda)", ylab="EBIC")
+       col=col, xlab=xlab, ylab="EBIC")
 }

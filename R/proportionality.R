@@ -42,7 +42,6 @@ logitNormalVariation <- function(mu, Sigma, type=c("standard","phi", "phis","rho
   d.S <- diag(Sigma)
   V <- tcrossprod(d.S, ones) + tcrossprod(ones, d.S) - 2*Sigma
   V <- rbind(cbind(V, d.S), c(d.S, 0))
-  colnames(V) <- NULL
 
   if (type=="phi") {
     lv <- logVarTaylorFull(mu, Sigma, order=order)
@@ -60,6 +59,7 @@ logitNormalVariation <- function(mu, Sigma, type=c("standard","phi", "phis","rho
     V <- 2*lv/den
   }
 
+  colnames(V) <- rownames(V) <- names(mu)
   return(V)
 }
 
@@ -108,7 +108,9 @@ pluginVariation <- function(counts, type=c("standard","phi", "phis","rho"),
   mu <- colMeans(y.alr)
   Sigma <- cov(y.alr)
 
-  logitNormalVariation(mu, Sigma, type, order)
+  V <- logitNormalVariation(mu, Sigma, type, order)
+  colnames(V) <- rownames(V) <- colnames(counts)
+  return(V)
 }
 
 #' Naive (Empirical) Variation
@@ -120,8 +122,6 @@ pluginVariation <- function(counts, type=c("standard","phi", "phis","rho"),
 #' @param pseudo.count Positive count to be added to all elements of count matrix.
 #' @param type Type of variation metric to be calculated: \code{standard}, \code{phi},
 #'  \code{phis} (a symmetric version of \code{phi}), \code{rho}, or \code{logp} (the variance-covariance matrix of log-transformed proportions)
-#' @param already.log If \code{FALSE}, the function assumes the counts have not yet been log-transformed and will do the transformation. Otherwise
-#' it will assume that the counts have already been log-transformed.
 #' @param impute.zeros If TRUE, then \code{cmultRepl()} from the \code{zCompositions} package is used to impute zero values in the counts matrix.
 #' @param ... Optional arguments passed to zero-imputation function \code{cmultRepl()}
 #'
@@ -137,27 +137,25 @@ pluginVariation <- function(counts, type=c("standard","phi", "phis","rho"),
 #' @export
 #'
 naiveVariation <- function(counts, pseudo.count=0, type=c("standard","phi", "phis","rho", "logp"),
-                           already.log=FALSE, impute.zeros=TRUE, ...) {
+                           impute.zeros=TRUE, ...) {
 
   if (!is.matrix(counts) | !is.numeric(counts)) stop("counts must be a numeric matrix")
   if (!is.logical(impute.zeros)) stop("impute.zeros must be TRUE or FALSE")
-  if (!is.logical(impute.zeros)) stop("impute.zeros must be TRUE or FALSE")
-  if (already.log & impute.zeros) stop("Cannot impute zeros if already.log=TRUE")
   if (!is.numeric(pseudo.count)) stop("pseudo.count must be numeric")
   if (pseudo.count<0) stop("pseudo.count must be non-negative")
 
   type <- match.arg(type)
   J <- NCOL(counts)
   l <- counts
-  if (!already.log) {
-    l <- l + pseudo.count
-    l <- l/rowSums(l)
-    l <- log(l)
-    get.inf <- is.infinite(l)
-    if (any(get.inf)) {
-      stop("There are infinities after taking log.  Consider setting impute.zeros=TRUE")
-    }
+
+  l <- l + pseudo.count
+  l <- l/rowSums(l)
+  l <- log(l)
+  get.inf <- is.infinite(l)
+  if (any(get.inf)) {
+    stop("There are infinities after taking log.  Consider setting impute.zeros=TRUE")
   }
+
 
   v <- matrix(0,J,J)
   for (i in 1:J) {
@@ -176,6 +174,7 @@ naiveVariation <- function(counts, pseudo.count=0, type=c("standard","phi", "phi
 
   if (type=="logp") v <- compositions::cov(l)
 
+  colnames(V) <- rownames(V) <- colnames(counts)
   return(v)
 }
 
@@ -222,5 +221,7 @@ logVarTaylorFull <- function(mu, Sigma, transf=c("alr", "clr"), order=c("second"
     mat <- Sigma%*%(tcrossprod(ainv)-diag(ainv))
     t2 <- sum(diag(mat%*%mat))
   }
-  M%*%tcrossprod(Sigma, M) + 0.5*t2
+  V <- M%*%tcrossprod(Sigma, M) + 0.5*t2
+  colnames(V) <- rownames(V) <- colnames(counts)
+  return(v)
 }

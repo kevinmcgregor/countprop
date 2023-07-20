@@ -8,7 +8,6 @@ naiveVariation(
   counts,
   pseudo.count = 0,
   type = c("standard", "phi", "phis", "rho", "logp"),
-  already.log = FALSE,
   impute.zeros = TRUE,
   ...
 )
@@ -20,9 +19,6 @@ naiveVariation(
 
 \item{type}{Type of variation metric to be calculated: \code{standard}, \code{phi},
 \code{phis} (a symmetric version of \code{phi}), \code{rho}, or \code{logp} (the variance-covariance matrix of log-transformed proportions)}
-
-\item{already.log}{If \code{FALSE}, the function assumes the counts have not yet been log-transformed and will do the transformation. Otherwise
-it will assume that the counts have already been log-transformed.}
 
 \item{impute.zeros}{If TRUE, then \code{cmultRepl()} from the \code{zCompositions} package is used to impute zero values in the counts matrix.}
 

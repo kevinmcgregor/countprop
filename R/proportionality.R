@@ -1,10 +1,8 @@
 #' Logit Normal Variation
 #'
 #' Estimates the variation matrix of count-compositional data
-#' based on a the same approximation used in logitNormalVariation()
-#' only for this function it uses empirical estimates of mu and Sigma.
-#' Also performs zero-imputation using \code{cmultRepl()} from the
-#' \code{zCompositions} package.
+#' based on a multinomial logit-Normal distribution. Estimate is performed using
+#' only the parameters of the distribution.
 #'
 #' @param mu The mle estimate of the mu matrix
 #' @param Sigma The mle estimate of the Sigma matrix
@@ -66,8 +64,11 @@ logitNormalVariation <- function(mu, Sigma, type=c("standard","phi", "phis","rho
 #' Plugin Variation
 #'
 #' Estimates the variation matrix of count-compositional data
-#' based on a multinomial logit-Normal distribution. Estimate is performed using
-#' only the parameters of the distribution.
+#' based on a the same approximation used in logitNormalVariation()
+#' only for this function it uses empirical estimates of mu and Sigma.
+#' Also performs zero-imputation using \code{cmultRepl()} from the
+#'
+#' \code{zCompositions} package.
 #'
 #' @param counts Matrix of counts; samples are rows and features are columns.
 #' @param type Type of variation metric to be calculated: \code{standard}, \code{phi},

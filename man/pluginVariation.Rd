@@ -30,8 +30,12 @@ An estimation of the variation matrix, \code{V}.
 }
 \description{
 Estimates the variation matrix of count-compositional data
-based on a multinomial logit-Normal distribution. Estimate is performed using
-only the parameters of the distribution.
+based on a the same approximation used in logitNormalVariation()
+only for this function it uses empirical estimates of mu and Sigma.
+Also performs zero-imputation using \code{cmultRepl()} from the
+}
+\details{
+\code{zCompositions} package.
 }
 \examples{
 data(singlecell)

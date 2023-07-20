@@ -4,12 +4,14 @@
 \alias{ebicPlot}
 \title{Extended Bayesian Information Criterion Plot}
 \usage{
-ebicPlot(fit, xlog = FALSE)
+ebicPlot(fit, xlog = FALSE, col = "darkred")
 }
 \arguments{
 \item{fit}{The model fit}
 
 \item{xlog}{TRUE or FALSE. Renders plot with the x-axis in the log-scale if \code{TRUE}}
+
+\item{col}{Colour of the plot (character)}
 }
 \value{
 Plot of the EBIC (y-axis) against each lambda (x-axis).

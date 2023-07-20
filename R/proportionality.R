@@ -1,8 +1,10 @@
 #' Logit Normal Variation
 #'
 #' Estimates the variation matrix of count-compositional data
-#' based on a multinomial logit-Normal distribution. Estimate is performed using
-#' only the parameters of the distribution.
+#' based on a the same approximation used in logitNormalVariation()
+#' only for this function it uses empirical estimates of mu and Sigma.
+#' Also performs zero-imputation using \code{cmultRepl()} from the
+#' \code{zCompositions} package.
 #'
 #' @param mu The mle estimate of the mu matrix
 #' @param Sigma The mle estimate of the Sigma matrix
@@ -26,6 +28,12 @@
 #' @export
 logitNormalVariation <- function(mu, Sigma, type=c("standard","phi", "phis","rho"),
                                  order=c("second", "first")) {
+
+  if (!is.vector(mu) | !is.numeric(mu)) stop("mu must be a numeric vector")
+  if (!is.matrix(Sigma) | !is.numeric(Sigma)) stop("Sigma must be a numeric matrix")
+  if (NROW(Sigma)!=NCOL(Sigma) | !isSymmetric(Sigma)) stop("Sigma must be a valid covariance matrix")
+  if (length(mu)!=NROW(Sigma)) stop("Dimension mismatch between mu and Sigma")
+
   type <- match.arg(type)
   J <- length(mu)
 
@@ -55,26 +63,69 @@ logitNormalVariation <- function(mu, Sigma, type=c("standard","phi", "phis","rho
   return(V)
 }
 
-#' Naive Variation
+#' Plugin Variation
 #'
-#' Estimates the variation matrix of count compositional data using the proportions
-#' of a count compositional dataset.
+#' Estimates the variation matrix of count-compositional data
+#' based on a multinomial logit-Normal distribution. Estimate is performed using
+#' only the parameters of the distribution.
 #'
-#' @param counts Count-compositional dataset
-#' @param pseudo.count Scaler value added to the data matrix to prevent infinite
-#' values caused by taking the log of the counts
+#' @param counts Matrix of counts; samples are rows and features are columns.
 #' @param type Type of variation metric to be calculated: \code{standard}, \code{phi},
-#'  \code{phis} (a symmetrical version of \code{phi}), \code{rho}, or \code{logx}
-#' @param use If equal to \code{"everything"} and there are no infinite values after
-#' taking the log the calculation will use all data. If equal to \code{"everything"}
-#' and there are infinite values after taking the log it is recommended to  run
-#' the function again, instead setting the \code{use} parameter to \code{"pairwise.complete.obs"}
-#' @param set.inf.na If \code{TRUE}, sets any infinite values in \code{counts} to \code{NA}
-#' @param already.log If \code{FALSE}, the counts have not been transformed by
-#' by the log. This transformation is of the form \eqn{log(frac{X_{ij}}{s_{i}})}, where
-#' \eqn{s_{i} = \sum{n=1}^{j} X_{in}}, where \eqn{X_{ij}} is element \eqn{counts[i,j]}
+#' \code{phis} (a symmetrical version of \code{phi}), or \code{rho}
+#' @param order The order of the Taylor-series approximation to be used in the
+#' estimation
+#' @param impute.zeros If TRUE, then \code{cmultRepl()} from the \code{zCompositions} package is used to impute zero values in the counts matrix.
+#' @param ... Optional arguments passed to zero-imputation function \code{cmultRepl()}
 #'
-#' @return The naive variation matrix, \code{v}.
+#' @return An estimation of the variation matrix, \code{V}.
+#'
+#' @importFrom zCompositions cmultRepl
+#' @examples
+#' data(singlecell)
+#'
+#' pluginVariation(singlecell)
+#' pluginVariation(singlecell, type="phi")
+#' pluginVariation(singlecell, type="rho")
+#'
+#' @export
+pluginVariation <- function(counts, type=c("standard","phi", "phis","rho"),
+                                 order=c("second", "first"), impute.zeros=TRUE, ...) {
+  if (!is.matrix(counts) | !is.numeric(counts)) stop("counts must be a numeric matrix")
+  if (!is.logical(impute.zeros)) stop("impute.zeros must be TRUE or FALSE")
+
+  type <- match.arg(type)
+  J <- NCOL(counts) - 1
+
+  # Imputing zeros
+  if (any(counts==0) & impute.zeros) {
+    y.no0 <- as.matrix(cmultRepl(counts, output = "p-count", ...))
+  } else {
+    y.no0 <- counts
+  }
+  y.alr <- log(y.no0[,-(J+1)]) - log(y.no0[,(J+1)])
+
+  # Empirical estimates of mu and Sigma
+  mu <- colMeans(y.alr)
+  Sigma <- cov(y.alr)
+
+  logitNormalVariation(mu, Sigma, type, order)
+}
+
+#' Naive (Empirical) Variation
+#'
+#' Naive (empirical) estimates of proportionality metrics using only the
+#' observed counts.
+#'
+#' @param counts Matrix of counts; samples are rows and features are columns
+#' @param pseudo.count Positive count to be added to all elements of count matrix.
+#' @param type Type of variation metric to be calculated: \code{standard}, \code{phi},
+#'  \code{phis} (a symmetric version of \code{phi}), \code{rho}, or \code{logp} (the variance-covariance matrix of log-transformed proportions)
+#' @param already.log If \code{FALSE}, the function assumes the counts have not yet been log-transformed and will do the transformation. Otherwise
+#' it will assume that the counts have already been log-transformed.
+#' @param impute.zeros If TRUE, then \code{cmultRepl()} from the \code{zCompositions} package is used to impute zero values in the counts matrix.
+#' @param ...
+#'
+#' @return A matrix containing the proportionality metric of interest calculated naively (empirically).
 #'
 #' @examples
 #' #' data(singlecell)
@@ -85,9 +136,17 @@ logitNormalVariation <- function(mu, Sigma, type=c("standard","phi", "phis","rho
 #'
 #' @export
 #'
-naiveVariation <- function(counts, pseudo.count=0, type=c("standard","phi", "phis","rho", "logx"),
-                           use="everything",
-                           set.inf.na=TRUE, already.log=FALSE) {
+naiveVariation <- function(counts, pseudo.count=0, type=c("standard","phi", "phis","rho", "logp"),
+                           already.log=FALSE, impute.zeros=TRUE, ...) {
+
+  if (!is.matrix(counts) | !is.numeric(counts)) stop("counts must be a numeric matrix")
+  if (!is.logical(impute.zeros)) stop("impute.zeros must be TRUE or FALSE")
+  if (!is.logical(impute.zeros)) stop("impute.zeros must be TRUE or FALSE")
+  if (already.log & impute.zeros) stop("Cannot impute zeros if already.log=TRUE")
+  if (!is.character(use)) stop("'use' must be a character")
+  if (!is.numeric(pseudo.count)) stop("pseudo.count must be numeric")
+  if (pseudo.count<0) stop("pseudo.count must be non-negative")
+
   type <- match.arg(type)
   J <- NCOL(counts)
   l <- counts
@@ -96,9 +155,8 @@ naiveVariation <- function(counts, pseudo.count=0, type=c("standard","phi", "phi
     l <- l/rowSums(l)
     l <- log(l)
     get.inf <- is.infinite(l)
-    l[get.inf] <- NA
-    if (any(get.inf) & use=="everything") {
-      warning("There are infinities after taking log.  Consider setting paramter use='pairwise.complete.obs'")
+    if (any(get.inf)) {
+      stop("There are infinities after taking log.  Consider setting impute.zeros=TRUE")
     }
   }
 
@@ -106,37 +164,36 @@ naiveVariation <- function(counts, pseudo.count=0, type=c("standard","phi", "phi
   for (i in 1:J) {
     for (j in 1:J){
       if (type=="standard") {
-        v[i,j] <- compositions::var(l[,i]-l[,j], use=use)
+        v[i,j] <- compositions::var(l[,i]-l[,j])
       } else if (type=="phi") {
-        v[i,j] <- compositions::var(l[,i]-l[,j], use=use)/compositions::var(l[,i], use=use)
+        v[i,j] <- compositions::var(l[,i]-l[,j])/compositions::var(l[,i])
       } else if (type=="phis") {
-        v[i,j] <- compositions::var(l[,i]-l[,j], use=use)/(compositions::var(l[,i]+l[,j], use=use))
+        v[i,j] <- compositions::var(l[,i]-l[,j])/(compositions::var(l[,i]+l[,j]))
       } else if (type=="rho") {
-        v[i,j] <- 2*compositions::cov(l[,i],l[,j], use=use)/(compositions::var(l[,i], use=use)+compositions::var(l[,j], use=use))
+        v[i,j] <- 2*compositions::cov(l[,i],l[,j])/(compositions::var(l[,i])+compositions::var(l[,j]))
       }
     }
   }
 
-  if (type=="logx") v <- compositions::cov(l, use=use)
+  if (type=="logp") v <- compositions::cov(l)
 
   return(v)
 }
 
 
-#' Full Logx Variance-Covariance
+#' Full logp Variance-Covariance
 #'
-#' Estimates the variance-covariance of the log of the data, using a
-#' Taylor-series approximation. This function differs from the function
-#' \code{Logx Variance-Covariance} in that the resultant matrix includes a reference category.
+#' Estimates the variance-covariance of the log of the proportions using a
+#' Taylor-series approximation.
 #'
-#' @param mu The mean vector of a dataset following the multinomial logit-Normal model
-#' @param Sigma The sigma matrix of a dataset following the multinomial logit-Normal model
+#' @param mu The mean vector of the log-ratio-transformed data (ALR or CLR)
+#' @param Sigma The variance-covariance matrix of the log-ratio-transformed data (ALR or CLR)
 #' @param transf The desired transformation. If \code{transf="alr"} the inverse
-#' additive logratio transformation is applied. If \code{transf="clr"} the
-#' inverse centered logratio transformation is applied.
+#' additive log-ratio transformation is applied. If \code{transf="clr"} the
+#' inverse centered log-ratio transformation is applied.
 #' @param order The desired order of the Taylor Series approximation
 #'
-#' @return The estimated variance-covariance matrix, \code{logx}.
+#' @return The estimated variance-covariance matrix for \code{log p}.
 #'
 #' @examples
 #' data(singlecell)

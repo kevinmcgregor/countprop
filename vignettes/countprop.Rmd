@@ -1,6 +1,33 @@
 ---
 title: "countprop"
-output: rmarkdown::html_vignette
+output: 
+  pdf_document: default
+  extra_dependencies: ["amsmath","amsthm","amssymb","bbm","mathrsfs","mathtools","xfrac","breqn","bm"]
+header-includes: 
+  \newcommand{\Omegab}{\mathbf{\Omega}}
+  \newcommand{\Sigmab}{\mathbf{\Sigma}}
+  \newcommand{\mub}{\boldsymbol{\mu}}
+  \newcommand{\pb}{\textbf{p}}
+  \newcommand{\ev}{\mathbb{E}}
+  \newcommand{\Ib}{\textbf{I}}
+  \newcommand{\Xb}{\textbf{X}}
+  \newcommand{\Bb}{\textbf{B}}
+  \newcommand{\Fb}{\textbf{F}}
+  \newcommand{\Yb}{\textbf{Y}}
+  \newcommand{\Wb}{\textbf{W}}
+  \newcommand{\wb}{\textbf{w}}
+  \newcommand{\Vb}{\textbf{V}}
+  \newcommand{\Qb}{\textbf{Q}}
+  \DeclareMathOperator{\alr}{alr}
+  \DeclareMathOperator{\alri}{alr^{-1}}
+  \DeclareMathOperator*{\argmax}{arg\,max}
+  \DeclareMathOperator{\tr}{tr}
+  \newcommand{\lb}{\left[}
+  \newcommand{\rb}{\right]}
+  \newcommand{\lc}{\left\{}
+  \newcommand{\rc}{\right\}}
+  \newcommand{\lp}{\left(}
+  \newcommand{\rp}{\right)}
 vignette: >
   %\VignetteIndexEntry{countprop}
   %\VignetteEngine{knitr::rmarkdown}
@@ -14,6 +41,111 @@ knitr::opts_chunk$set(
 )
 ```
 
+# Introduction
+The \texttt{countprop} package allows estimation of several types of proportionality metrics for count-based compositional data such as 16S, metagenomic, and single-cell sequencing data.  The package includes functions that allow standard empirical estimates of these proportionality metrics, as well as estimates based on the multinomial logit-normal model.
+
+First, we'll define the model.  Assume $n$ samples and $J+1$ features.  Suppose the counts for sample $i$ for feature $j$ are denoted by $y_{ij}$ for $i=1,\dots,n$ and $j=1,\dots,J+1$.  They are modelled using the multinomial distribution:
+```{=latex}
+\begin{align*}
+    y_i &\sim \text{Multinomial}(M_i; p_{i1},\dots,p_{i(J+1)}),
+\end{align*}
+```
+
+where $M_i=\sum_{j=1}^{J+1} y_{ij}$ and proportion vector $\pb_i=(p_{i1},\dots,p_{i(J+1)})$.  The proportions themselves are modelled using a logit-normal model, which can be formulated through a set of latent vectors $\left( w_{i1}, \dots, w_{iJ} \right)$ which are related to the proportions by:
+```{=latex}
+\begin{align*}
+p_{ij} &= \alr^{-1}\lp\wb_i\rp \\
+    &= \begin{cases} 
+	    \frac{\exp\lc w_{ij} \rc}{1+\sum_{j=1}^J \exp\lc w_{ij} \rc} & \mbox{if } j=1,\dots,J \\
+		\frac{1}{1+\sum_{j=1}^J \exp\lc w_{ij} \rc} & \mbox{if } j=J+1.
+		\end{cases}
+\end{align*}
+```
+
+The latent vectors are distributed as multivariate normal:
+```{=latex}
+\begin{align*}
+	\left( w_{i1}, \dots, w_{iJ} \right) &\sim \mbox{MV-Normal}_J \left( \mub, \Sigmab \right).
+\end{align*}
+```
+
+The read-depths are assumed to be distributed as log-normal:
+```{=latex}
+\begin{align*}
+    M_i \sim \text{Log-Normal} \left(\mu_\ell, \sigma_\ell^2 \right).
+\end{align*}
+```
+
+Finally, to guard against spurious correlations, we apply the $L_1$-penalty to the inverse covariance matrix $\Sigmab$ (i.e.\ the ``graphical lasso" penalty).
+```{=latex}
+\begin{align*}
+    \ell\lp w_{i1}, \dots, w_{iJ} \rp = \log\det \Sigmab^{-1} - \tr(S \Sigmab^{-1}) - \lambda || \Sigmab^{-1} ||_1
+\end{align*}
+```
+
+# Fitting the model
+
+The \texttt{countprop} package has a built-in function to estimate the model parameters.  First, let's load the countprop library and look at the first few lines of the murine single cell sequencing dataset included with the package:
 ```{r setup}
 library(countprop)
+data(singlecell)
+
+head(singlecell, 2)
 ```
+
+To fit the multinomial logit-normal model, we can use the \texttt{mleLR()} function:
+```{r mle}
+mle <- mleLR(singlecell)
+
+# Maximum likelihood estimates of model parameters
+mle$mu
+mle$Sigma.inv
+```
+
+For the \texttt{mleLR()} function, it is necessary to specify a value for $\lambda$, which is the graphical lasso penalty parameter.  The default is 0.  However, we can also run multiple values of $\lambda$ to find which one leads to the best fit based on the Extended Bayesian Information Criterion (EBIC).  To do this, we use the \texttt{mlePath()} function.  This allows us to choose the number of $\lambda$ values we want to run the model on (\texttt{n.lambda} parameter).  This can also be parallelized by setting \texttt{n.cores>1}.  Once we've obtained the model fit, we can visualize the EBIC values for each $\lambda$ value using \texttt{ebicPlot()}.
+```{r lambdaselect}
+mle2 <- mlePath(singlecell, n.lambda=10, n.cores=1)
+mle2$min.idx # Index of smallest lambda value
+
+# Plot EBIC for different lambda values
+ebicPlot(mle2)
+```
+
+In this case, the optimal value of $\lambda$ is the one in the first position of the lambda vector.  When the optimal $\lambda$ value is the smallest one considered, then it's possible that an even smaller $\lambda$ value would be optimal and was not considered.  In this case, the argument \texttt{lambda.min.ratio} can be reduced from its default of \texttt{0.1}:
+```{r lambdaselect2}
+mle3 <- mlePath(singlecell, n.lambda=10, lambda.min.ratio = 0.0001, n.cores=1)
+mle3$min.idx
+
+ebicPlot(mle3)
+```
+
+The minimum EBIC now corresponds to the 3rd smallest value of $\lambda$.
+
+
+# Estimating the proportionality metrics
+
+Once the model parameters have been estimated.
+```{r lnvariation}
+# Variation matrix
+logitNormalVariation(mle3$est.min$mu, mle3$est.min$Sigma)
+
+# Phi matrix
+logitNormalVariation(mle3$est.min$mu, mle3$est.min$Sigma, type="phi")
+
+# Rho matrix
+logitNormalVariation(mle3$est.min$mu, mle3$est.min$Sigma, type="rho")
+```
+
+The package also provides the standard naive (empirical) estimates of the proportionality metrics.
+```{r naivevar}
+# Naive (empirical) variation matrix
+naiveVariation(singlecell)
+
+# Naive (empirical) Phi matrix
+naiveVariation(singlecell, type="phi")
+
+# Naive (empirical) Rho matrix
+naiveVariation(singlecell, type="rho")
+```
+
+

@@ -286,6 +286,7 @@ ebic <- function(l, n, d, df, gamma) {
 #'
 #' @param fit The model fit
 #' @param xlog TRUE or FALSE. Renders plot with the x-axis in the log-scale if \code{TRUE}
+#' @param col Colour of the plot (character)
 #'
 #' @return Plot of the EBIC (y-axis) against each lambda (x-axis).
 #'
@@ -298,7 +299,7 @@ ebic <- function(l, n, d, df, gamma) {
 #' @export
 #'
 #'
-ebicPlot <- function(fit, xlog=FALSE) {
+ebicPlot <- function(fit, xlog=FALSE, col="darkred") {
   if (xlog) {
     x.ax <- log(fit$lambda.gl)
   } else {

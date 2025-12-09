@@ -4,10 +4,10 @@
 \alias{logLik}
 \title{Log-Likelihood}
 \usage{
-logLik(v, y, ni, S, invSigma)
+logLik(v, y, ni, S, invSigma, lr = c("alr", "clr"))
 }
 \arguments{
-\item{v}{The additive log-ratio transform of y}
+\item{v}{The additive or centered log-ratio transform of y}
 
 \item{y}{Compositional dataset}
 
@@ -16,6 +16,8 @@ logLik(v, y, ni, S, invSigma)
 \item{S}{Covariance of \code{v}}
 
 \item{invSigma}{The inverse of the Sigma matrix}
+
+\item{lr}{Which log-ratio transformation to use}
 }
 \value{
 The estimated log-likelihood under the Multinomial logit-Normal distribution.

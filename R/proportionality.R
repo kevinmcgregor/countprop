@@ -8,7 +8,8 @@
 #' @param Sigma The mle estimate of the Sigma matrix
 #' @param type Type of variation metric to be calculated: \code{standard}, \code{phi},
 #' \code{phis} (a symmetrical version of \code{phi}), \code{rho}, or \code{logp} (the variance-covariance matrix of log-transformed proportions)
-#' @param order The order of the Taylor-series approximation to be used in the
+#' @param lr Which scale to calculate the proportionality metric on, either alr or clr.
+#' @param order Deprecated: The order of the Taylor-series approximation to be used in the
 #' estimation
 #'
 #' @return An estimate of the requested metric of proportionality.
@@ -25,43 +26,64 @@
 #'
 #' @export
 logitNormalVariation <- function(mu, Sigma, type=c("standard","phi", "phis","rho"),
-                                 order=c("second", "first")) {
+                                 lr=c("alr", "clr"), order=c("second", "first")) {
 
   if (!is.vector(mu) | !is.numeric(mu)) stop("mu must be a numeric vector")
   if (!is.matrix(Sigma) | !is.numeric(Sigma)) stop("Sigma must be a numeric matrix")
   if (NROW(Sigma)!=NCOL(Sigma) | !isSymmetric(Sigma)) stop("Sigma must be a valid covariance matrix")
   if (length(mu)!=NROW(Sigma)) stop("Dimension mismatch between mu and Sigma")
 
-  type <- match.arg(type)
-  J <- length(mu)
+  if (!missing(order)) stop("order argument is deprecated")
 
+  type <- match.arg(type)
+  lr <- match.arg(lr)
+
+  J <- length(mu)
   ones <- rep(1, J)
-  ones.long <- rep(1, J+1)
   d.S <- diag(Sigma)
   V <- tcrossprod(d.S, ones) + tcrossprod(ones, d.S) - 2*Sigma
-  V <- rbind(cbind(V, d.S), c(d.S, 0))
-  rownames(V) <- colnames(V) <- NULL
+  V <- cbind(rbind(V, d.S), c(d.S, 0))
+  dimnames(V) <- NULL
 
-  if (type=="phi") {
-    lv <- logVarTaylorFull(mu, Sigma, order=order)
-    lv.row <- tcrossprod(diag(lv), ones.long)
-    V <- V/lv.row
-  } else if (type=="phis") {
-    lv <- logVarTaylorFull(mu, Sigma, order=order)
-    lv.d <- diag(lv)
-    den <- outer(lv.d, lv.d, "+") + 2*lv
-    V <- V/den
-  } else if (type=="rho") {
-    lv <- logVarTaylorFull(mu, Sigma, order=order)
-    lv.d <- diag(lv)
-    den <- outer(lv.d, lv.d, "+")
-    V <- 2*lv/den
+  if (lr=="alr") {
+    if (type=="phi") {
+      den <- tcrossprod(d.S, ones)
+      V[1:J,1:J] <- V[1:J,1:J]/den
+      V[J+1,1:J] <- rep(Inf, J)
+      V[,J+1] <- c(rep(1, J), NaN)
+    } else if (type=="phis" | type=="rho") {
+      # Calculate rho.  If type is "phis" then rho is still calculated
+      # but gets transformed to phis later.
+      V <- cbind(rbind(2*Sigma/outer(d.S, d.S, "+"), 0), 0)
+      V[J+1,J+1] <- 1
+    }
+  } else {
+    H.inv <- qr.solve(diag(J) + matrix(1, J, J))
+    Fm <- cbind(diag(J), -1)
+    HiF <- H.inv%*%Fm
+    Sigma.clr <- crossprod(HiF, Sigma)%*%HiF
+    d.Sc <- diag(Sigma.clr)
+    if (type=="phi") {
+      V <- V/tcrossprod(d.Sc, c(ones, 1))
+    } else if (type=="phis" | type=="rho") {
+      # Calculate rho.  If type is "phis" then rho is still calculated
+      # but gets transformed to phis later.
+      V <- 2*Sigma.clr/outer(d.Sc, d.Sc, "+")
+    }
+  }
+
+  if (type=="phis") {
+    V <- (1-V)/(1+V)
+    if (lr=="alr") {
+      V[J+1,1:J] <- rep(1, J)
+      V[,J+1] <- c(rep(1, J), 0)
+    }
   }
 
   return(V)
 }
 
-#' Plugin Variation
+#' Plugin Variation (Deprecated)
 #'
 #' Estimates the variation matrix of count-compositional data
 #' based on a the same approximation used in logitNormalVariation()
@@ -89,27 +111,7 @@ logitNormalVariation <- function(mu, Sigma, type=c("standard","phi", "phis","rho
 #' @export
 pluginVariation <- function(counts, type=c("standard","phi", "phis","rho"),
                                  order=c("second", "first"), impute.zeros=TRUE, ...) {
-  if (!is.matrix(counts) | !is.numeric(counts)) stop("counts must be a numeric matrix")
-  if (!is.logical(impute.zeros)) stop("impute.zeros must be TRUE or FALSE")
-
-  type <- match.arg(type)
-  J <- NCOL(counts) - 1
-
-  # Imputing zeros
-  if (any(counts==0) & impute.zeros) {
-    y.no0 <- as.matrix(cmultRepl(counts, output = "p-count", ...))
-  } else {
-    y.no0 <- counts
-  }
-  y.alr <- log(y.no0[,-(J+1)]) - log(y.no0[,(J+1)])
-
-  # Empirical estimates of mu and Sigma
-  mu <- colMeans(y.alr)
-  Sigma <- cov(y.alr)
-
-  V <- logitNormalVariation(mu, Sigma, type, order)
-  colnames(V) <- rownames(V) <- colnames(counts)
-  return(V)
+  .Deprecated("naiveVariation()")
 }
 
 #' Naive (Empirical) Variation
@@ -175,6 +177,31 @@ naiveVariation <- function(counts, pseudo.count=0, type=c("standard","phi", "phi
 
   colnames(v) <- rownames(v) <- colnames(counts)
   return(v)
+}
+
+
+#' Convert between CLR and ALR covariance matrices
+#'
+#' @param S Covariance matrix to be converted
+#' @param direction Which direction to convert between alr and clr.
+#'
+#' @returns A covariance matrix on the requested scale.
+#' @export
+#'
+#' @examples convertSigma(diag(3), "alr2clr")
+convertSigma <- function(S, direction=c("alr2clr", "clr2alr")) {
+  direction <- match.arg(direction)
+  k <- ifelse(direction=="alr2clr", NCOL(S), NCOL(S)-1)
+
+  Fm <- cbind(diag(k), -1)
+
+  if (direction=="alr2clr") {
+    Hinv <- qr.solve(diag(k)+matrix(1,k,k))
+    HiF <- Hinv%*%Fm
+    crossprod(HiF, S)%*%HiF
+  } else{
+    Fm%*%tcrossprod(S, Fm)
+  }
 }
 
 

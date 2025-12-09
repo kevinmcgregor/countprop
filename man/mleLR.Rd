@@ -12,6 +12,7 @@ mleLR(
   tol.nr = 1e-06,
   lambda.gl = 0,
   gamma = 0.1,
+  lr.penalty = c("alr", "clr"),
   verbose = FALSE
 )
 }
@@ -31,11 +32,14 @@ the sparsity of Sigma}
 
 \item{gamma}{Gamma value for EBIC calculation of the log-likelihood}
 
+\item{lr.penalty}{Should the precision matrix be penalized on the ALR or CLR scale?}
+
 \item{verbose}{If TRUE, print information as the functions run}
 }
 \value{
 The additive log-ratio of y (\code{v}); maximum likelihood estimates of
-\code{mu}, \code{Sigma}, and \code{Sigma.inv};
+\code{mu}, \code{Sigma}, and \code{Sigma.inv} (e.g. the covariance and precision matrices)
+on the ALR scale.  The CLR scale versions are \code{Sigma.clr} and \code{Sigma.inv.clr}, respectively;
 the log-likelihood (\code{log.lik}); the EBIC (extended Bayesian information criterion)
 of the log-likelihood of the multinomial logit-Normal model with the
 graphical lasso penalty (\code{ebic}); degrees of freedom of the \code{Sigma.inv}

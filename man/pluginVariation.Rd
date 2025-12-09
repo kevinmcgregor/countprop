@@ -2,7 +2,7 @@
 % Please edit documentation in R/proportionality.R
 \name{pluginVariation}
 \alias{pluginVariation}
-\title{Plugin Variation}
+\title{Plugin Variation (Deprecated)}
 \usage{
 pluginVariation(
   counts,

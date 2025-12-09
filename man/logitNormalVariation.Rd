@@ -8,6 +8,7 @@ logitNormalVariation(
   mu,
   Sigma,
   type = c("standard", "phi", "phis", "rho"),
+  lr = c("alr", "clr"),
   order = c("second", "first")
 )
 }
@@ -19,7 +20,9 @@ logitNormalVariation(
 \item{type}{Type of variation metric to be calculated: \code{standard}, \code{phi},
 \code{phis} (a symmetrical version of \code{phi}), \code{rho}, or \code{logp} (the variance-covariance matrix of log-transformed proportions)}
 
-\item{order}{The order of the Taylor-series approximation to be used in the
+\item{lr}{Which scale to calculate the proportionality metric on, either alr or clr.}
+
+\item{order}{Deprecated: The order of the Taylor-series approximation to be used in the
 estimation}
 }
 \value{

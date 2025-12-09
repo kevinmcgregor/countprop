@@ -12,10 +12,12 @@
 #' @param lambda.gl Penalization parameter lambda, for the graphical lasso penalty. Controls
 #' the sparsity of Sigma
 #' @param gamma Gamma value for EBIC calculation of the log-likelihood
+#' @param lr.penalty Should the precision matrix be penalized on the ALR or CLR scale?
 #' @param verbose If TRUE, print information as the functions run
 #'
 #' @return The additive log-ratio of y (\code{v}); maximum likelihood estimates of
-#' \code{mu}, \code{Sigma}, and \code{Sigma.inv};
+#' \code{mu}, \code{Sigma}, and \code{Sigma.inv} (e.g. the covariance and precision matrices)
+#' on the ALR scale.  The CLR scale versions are \code{Sigma.clr} and \code{Sigma.inv.clr}, respectively;
 #' the log-likelihood (\code{log.lik}); the EBIC (extended Bayesian information criterion)
 #' of the log-likelihood of the multinomial logit-Normal model with the
 #' graphical lasso penalty (\code{ebic}); degrees of freedom of the \code{Sigma.inv}
@@ -42,20 +44,26 @@
 #' @export
 #'
 mleLR <- function(y, max.iter=10000, max.iter.nr=100, tol=1e-6, tol.nr=1e-6,
-                  lambda.gl=0, gamma=0.1, verbose=FALSE) {
-
-  if (!is.matrix(y) | !is.numeric(y)) stop("y must be a numeric matrix")
+                  lambda.gl=0, gamma=0.1, lr.penalty=c("alr", "clr"), verbose=FALSE) {
+  lr.penalty <- match.arg(lr.penalty)
 
   n <- NROW(y)
   k <- NCOL(y)
   ni <- rowSums(y)
+
+  # initialize
   pseudo.count <- 0.1
-  v <- unclass(alr(y+pseudo.count))
+  v <- unclass(compositions::alr(y+pseudo.count))
   attr(v, "orig") <- NULL
   attr(v, "V") <- NULL
   colnames(v) <- NULL
   mu <- rep(0, k-1)
   mu.old <- mu+1
+
+  Fm <- cbind(diag(k-1), -1)
+  H <- diag(k-1) + matrix(1, k-1, k-1)
+  HiF <- qr.solve(H)%*%Fm
+  Sigma.clr <- diag(k)
 
   Sigma.inv <- diag(k-1)
   Sigma.inv.old <- Sigma.inv+0.1
@@ -64,6 +72,7 @@ mleLR <- function(y, max.iter=10000, max.iter.nr=100, tol=1e-6, tol.nr=1e-6,
   count <- 1
   while(max(abs((mu-mu.old)/mu.old))>tol & max(abs((diag(Sigma.inv)-diag(Sigma.inv.old))/diag(Sigma.inv.old)))>tol) {
     if (count%%10==0 & verbose) {
+      cat("Iter=", count, "\n")
       cat("Error=", max(abs((mu-mu.old)/mu.old)), "\n")
     }
     if (count>max.iter) stop("Maximum number of iterations reached")
@@ -88,22 +97,41 @@ mleLR <- function(y, max.iter=10000, max.iter.nr=100, tol=1e-6, tol.nr=1e-6,
     mu.old <- mu
     mu <- colMeans(v)
     Sigma.inv.old <- Sigma.inv
-    gl <- suppressWarnings(glasso(compositions::cov(v), lambda.gl))
-    Sigma.inv <- gl$wi
-    Sigma <- gl$w
+    cv <- cov(v)
+    if (lr.penalty=="clr") {
+      cv <- crossprod(HiF, cv)%*%HiF
+    }
+    gl <- suppressWarnings(glasso::glasso(cv, lambda.gl))
+    if (lr.penalty=="alr") {
+      Sigma.inv <- gl$wi
+      Sigma <- gl$w
+    } else {
+      Sigma.clr <- gl$w
+      Sigma.inv.clr <- gl$wi
+      Sigma <- Fm%*%tcrossprod(Sigma.clr, Fm)
+      Sigma.inv <- qr.solve(Sigma)
+    }
     count <- count+1
 
   }
 
-  S <- compositions::cov(v)
+  S <- cov(v)
 
-  log.lik <- logLik(v, y, ni, S, Sigma.inv)
-
-  df <- sum(Sigma.inv[lower.tri(Sigma.inv)]!=0)
+  if (lr.penalty=="alr") {
+    log.lik <- logLik(v, y, ni, S, Sigma.inv, lr.penalty)
+    df <- sum(Sigma.inv[lower.tri(Sigma.inv)]!=0)
+    Sigma.clr <- convertSigma(Sigma)
+    Sigma.inv.clr <- qr.solve(Sigma)
+  } else {
+    S <- crossprod(HiF, S)%*%HiF
+    v.clr <- v%*%HiF
+    log.lik <- logLik(v.clr, y, ni, S, Sigma.inv.clr, lr.penalty)
+    df <- sum(Sigma.inv.clr[lower.tri(Sigma.inv.clr)]!=0)
+  }
   eb <- ebic(log.lik, n, k-1, df, gamma)
 
   return(list(v=v, mu=mu, Sigma.inv=Sigma.inv, Sigma=Sigma, log.lik=log.lik,
-              ebic=eb, df=df))
+              ebic=eb, df=df, Sigma.inv.clr=Sigma.inv.clr, Sigma.clr=Sigma.clr))
 }
 
 
@@ -133,6 +161,7 @@ wrapMLE <- function(x) {
 #' @param n.lambda Number of lambdas to evaluate the model on
 #' @param n.cores Number of cores to use (for parallel computation)
 #' @param gamma Gamma value for EBIC calculation of the log-likelihood
+#' @param lr.penalty Should the precision matrix be penalized on the ALR or CLR scale?
 #'
 #' @return The MLE estimates of \code{y} for each element lambda of lambda.gl, (\code{est});
 #' the value of the estimates which produce the minimum EBIC, (\code{est.min});
@@ -161,7 +190,7 @@ wrapMLE <- function(x) {
 #'
 mlePath <- function(y, max.iter=10000, max.iter.nr=100, tol=1e-6, tol.nr=1e-6, lambda.gl=NULL,
                     lambda.min.ratio=0.1, n.lambda=1,
-                    n.cores=1, gamma=0.1) {
+                    n.cores=1, gamma=0.1, lr.penalty=c("alr", "clr")) {
 
   if (!is.matrix(y) | !is.numeric(y)) stop("y must be a numeric matrix")
 
@@ -182,7 +211,7 @@ mlePath <- function(y, max.iter=10000, max.iter.nr=100, tol=1e-6, tol.nr=1e-6, l
 
   m.pars <- vector("list", length=n.lam)
   for (i in 1:n.lam) {
-    m.pars[[i]] <- list(y, max.iter, max.iter.nr, tol, tol.nr, lambda.gl[i], gamma)
+    m.pars[[i]] <- list(y, max.iter, max.iter.nr, tol, tol.nr, lambda.gl[i], gamma, lr.penalty)
   }
 
   est <- parallel::mclapply(m.pars, wrapMLE, mc.cores = n.cores)
@@ -212,11 +241,12 @@ hess <- function(v, ni, Sigma.inv) {
 #'
 #' Calculates the log-likelihood, under the multinomial logit-Normal model.
 #'
-#' @param v The additive log-ratio transform of y
+#' @param v The additive or centered log-ratio transform of y
 #' @param y Compositional dataset
 #' @param ni The row sums of y
 #' @param S Covariance of \code{v}
 #' @param invSigma The inverse of the Sigma matrix
+#' @param lr Which log-ratio transformation to use
 #'
 #' @return The estimated log-likelihood under the Multinomial logit-Normal distribution.
 #'
@@ -236,12 +266,19 @@ hess <- function(v, ni, Sigma.inv) {
 #'
 #' @export
 #'
-logLik <- function(v, y, ni, S, invSigma) {
-  n <- NROW(y)
+logLik <- function(v, y, ni, S, invSigma, lr=c("alr", "clr")) {
+  lr <- match.arg(lr)
+  n <- NROW(v)
   n.sp <- NCOL(y)
-  rs <- log(rowSums(exp(v)+1))
   ldet <- determinant(invSigma, logarithm = TRUE)$modulus
-  sum(y[,-n.sp]*v) - sum(ni*rs) + n*0.5*(ldet - sum(diag(S%*%invSigma)))
+  if (lr=="alr") {
+    rs <- log(rowSums(exp(v)+1))
+    mn.part <- sum(y[,-n.sp]*v) - sum(ni*rs)
+  } else {
+    rs <- log(rowSums(exp(v)))
+    mn.part <- sum(y*v) - sum(ni*rs)
+  }
+  mn.part + n*0.5*(ldet - sum(diag(S%*%invSigma)))
 }
 
 

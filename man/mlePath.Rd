@@ -14,7 +14,8 @@ mlePath(
   lambda.min.ratio = 0.1,
   n.lambda = 1,
   n.cores = 1,
-  gamma = 0.1
+  gamma = 0.1,
+  lr.penalty = c("alr", "clr")
 )
 }
 \arguments{
@@ -38,6 +39,8 @@ used for the sequence of lambdas}
 \item{n.cores}{Number of cores to use (for parallel computation)}
 
 \item{gamma}{Gamma value for EBIC calculation of the log-likelihood}
+
+\item{lr.penalty}{Should the precision matrix be penalized on the ALR or CLR scale?}
 }
 \value{
 The MLE estimates of \code{y} for each element lambda of lambda.gl, (\code{est});

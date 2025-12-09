@@ -1,7 +1,7 @@
 Package: countprop
 Type: Package
 Title: Calculate Model-Based Metrics of Proportionality on Count-Based Compositional Data
-Version: 1.0.1
+Version: 1.1.1
 Authors@R: c(
   person("Kevin", "McGregor", email="kevinmcg@yorku.ca", role = c("aut", "cre", "cph")),
   person("Nneka", "Okaeme", email="nokaeme@uwaterloo.ca", role = c("aut")))

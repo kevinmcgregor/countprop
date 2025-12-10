@@ -3,9 +3,9 @@ Type: Package
 Title: Calculate Model-Based Metrics of Proportionality on Count-Based Compositional Data
 Version: 1.1.1
 Authors@R: c(
-  person("Kevin", "McGregor", email="kevinmcg@yorku.ca", role = c("aut", "cre", "cph")),
+  person("Kevin", "McGregor", email="kevin.mcgregor@umanitoba.ca", role = c("aut", "cre", "cph")),
   person("Nneka", "Okaeme", email="nokaeme@uwaterloo.ca", role = c("aut")))
-Maintainer: Kevin McGregor <kevinmcg@yorku.ca>
+Maintainer: Kevin McGregor <kevin.mcgregor@umanitoba.ca>
 Description: Calculates metrics of proportionality using the logit-normal multinomial model.  It can also provide empirical and plugin estimates of these metrics.
 License: GPL (>=3)
 Encoding: UTF-8

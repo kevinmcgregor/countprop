@@ -123,6 +123,7 @@ pluginVariation <- function(counts, type=c("standard","phi", "phis","rho"),
 #' @param pseudo.count Positive count to be added to all elements of count matrix.
 #' @param type Type of variation metric to be calculated: \code{standard}, \code{phi},
 #'  \code{phis} (a symmetric version of \code{phi}), \code{rho}, or \code{logp} (the variance-covariance matrix of log-transformed proportions)
+#' @param lr Which scale to calculate the proportionality metric on, either alr or clr.
 #' @param impute.zeros If TRUE, then \code{cmultRepl()} from the \code{zCompositions} package is used to impute zero values in the counts matrix.
 #' @param ... Optional arguments passed to zero-imputation function \code{cmultRepl()}
 #'
@@ -134,11 +135,14 @@ pluginVariation <- function(counts, type=c("standard","phi", "phis","rho"),
 #' naiveVariation(singlecell)
 #' naiveVariation(singlecell, type="phi")
 #' naiveVariation(singlecell, type="rho")
+#' naiveVariation(singlecell, type="rho", lr="clr")
 #'
+#' @importFrom zCompositions cmultRepl
+#' @importFrom stats var
 #' @export
 #'
-naiveVariation <- function(counts, pseudo.count=0, type=c("standard","phi", "phis","rho", "logp"),
-                           impute.zeros=TRUE, ...) {
+naiveVariation <- function(counts, pseudo.count=0, type=c("standard","phi", "phis","rho"),
+                           lr=c("alr", "clr"), impute.zeros=TRUE, ...) {
 
   if (!is.matrix(counts) | !is.numeric(counts)) stop("counts must be a numeric matrix")
   if (!is.logical(impute.zeros)) stop("impute.zeros must be TRUE or FALSE")
@@ -146,36 +150,38 @@ naiveVariation <- function(counts, pseudo.count=0, type=c("standard","phi", "phi
   if (pseudo.count<0) stop("pseudo.count must be non-negative")
 
   type <- match.arg(type)
-  J <- NCOL(counts)
-  l <- counts
+  lr <- match.arg(lr)
 
-  l <- l + pseudo.count
-  l <- l/rowSums(l)
-  l <- log(l)
-  get.inf <- is.infinite(l)
-  if (any(get.inf)) {
-    stop("There are infinities after taking log.  Consider setting impute.zeros=TRUE")
+  if (impute.zeros & any(counts==0)) {
+    l <- as.matrix(zCompositions::cmultRepl(counts, output = "p-counts", z.warning = 0.9999,
+                                            suppress.print=TRUE))
+  } else {
+    l <- counts + pseudo.count
   }
 
+  if (lr=="alr") {
+    l <- compositions::alr(l)
+  } else {
+    l <- compositions::clr(l)
+  }
+
+  J <- NCOL(l)
 
   v <- matrix(0,J,J)
   for (i in 1:J) {
     for (j in 1:J){
       if (type=="standard") {
-        v[i,j] <- compositions::var(l[,i]-l[,j])
+        v[i,j] <- var(l[,i]-l[,j])
       } else if (type=="phi") {
-        v[i,j] <- compositions::var(l[,i]-l[,j])/compositions::var(l[,i])
+        v[i,j] <- var(l[,i]-l[,j])/var(l[,i])
       } else if (type=="phis") {
-        v[i,j] <- compositions::var(l[,i]-l[,j])/(compositions::var(l[,i]+l[,j]))
+        v[i,j] <- var(l[,i]-l[,j])/(var(l[,i]+l[,j]))
       } else if (type=="rho") {
-        v[i,j] <- 2*compositions::cov(l[,i],l[,j])/(compositions::var(l[,i])+compositions::var(l[,j]))
+        v[i,j] <- 2*cov(l[,i],l[,j])/(var(l[,i])+var(l[,j]))
       }
     }
   }
 
-  if (type=="logp") v <- compositions::cov(l)
-
-  colnames(v) <- rownames(v) <- colnames(counts)
   return(v)
 }
 

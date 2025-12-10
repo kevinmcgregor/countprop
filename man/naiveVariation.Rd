@@ -7,7 +7,8 @@
 naiveVariation(
   counts,
   pseudo.count = 0,
-  type = c("standard", "phi", "phis", "rho", "logp"),
+  type = c("standard", "phi", "phis", "rho"),
+  lr = c("alr", "clr"),
   impute.zeros = TRUE,
   ...
 )
@@ -19,6 +20,8 @@ naiveVariation(
 
 \item{type}{Type of variation metric to be calculated: \code{standard}, \code{phi},
 \code{phis} (a symmetric version of \code{phi}), \code{rho}, or \code{logp} (the variance-covariance matrix of log-transformed proportions)}
+
+\item{lr}{Which scale to calculate the proportionality metric on, either alr or clr.}
 
 \item{impute.zeros}{If TRUE, then \code{cmultRepl()} from the \code{zCompositions} package is used to impute zero values in the counts matrix.}
 
@@ -37,5 +40,6 @@ observed counts.
 naiveVariation(singlecell)
 naiveVariation(singlecell, type="phi")
 naiveVariation(singlecell, type="rho")
+naiveVariation(singlecell, type="rho", lr="clr")
 
 }

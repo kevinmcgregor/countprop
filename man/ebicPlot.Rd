@@ -7,7 +7,7 @@
 ebicPlot(fit, xlog = TRUE, col = "darkred")
 }
 \arguments{
-\item{fit}{The model fit object from \code{mleLR()}}
+\item{fit}{The model fit object from \code{mlePath()}}
 
 \item{xlog}{TRUE or FALSE. Renders plot with the x-axis in the log-scale if \code{TRUE}}
 

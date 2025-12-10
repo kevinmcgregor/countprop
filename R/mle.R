@@ -323,7 +323,7 @@ ebic <- function(l, n, d, df, gamma) {
 #' Plots the extended Bayesian information criterion (EBIC) of the model fit for
 #' various penalization parameters \code{lambda}.
 #'
-#' @param fit The model fit object from \code{mleLR()}
+#' @param fit The model fit object from \code{mlePath()}
 #' @param xlog TRUE or FALSE. Renders plot with the x-axis in the log-scale if \code{TRUE}
 #' @param col Colour of the plot (character)
 #'

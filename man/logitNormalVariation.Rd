@@ -15,10 +15,10 @@ logitNormalVariation(
 \arguments{
 \item{mu}{The mle estimate of the mu matrix}
 
-\item{Sigma}{The mle estimate of the Sigma matrix}
+\item{Sigma}{The mle estimate of the Sigma matrix (input Sigma on the ALR scale, even if requesting metrics on the CLR scale)}
 
 \item{type}{Type of variation metric to be calculated: \code{standard}, \code{phi},
-\code{phis} (a symmetrical version of \code{phi}), \code{rho}, or \code{logp} (the variance-covariance matrix of log-transformed proportions)}
+\code{phis} (a symmetrical version of \code{phi}), or \code{rho}}
 
 \item{lr}{Which scale to calculate the proportionality metric on, either alr or clr.}
 

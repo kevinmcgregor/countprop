@@ -5,9 +5,9 @@
 #' only the parameters of the distribution.
 #'
 #' @param mu The mle estimate of the mu matrix
-#' @param Sigma The mle estimate of the Sigma matrix
+#' @param Sigma The mle estimate of the Sigma matrix (input Sigma on the ALR scale, even if requesting metrics on the CLR scale)
 #' @param type Type of variation metric to be calculated: \code{standard}, \code{phi},
-#' \code{phis} (a symmetrical version of \code{phi}), \code{rho}, or \code{logp} (the variance-covariance matrix of log-transformed proportions)
+#' \code{phis} (a symmetrical version of \code{phi}), or \code{rho}
 #' @param lr Which scale to calculate the proportionality metric on, either alr or clr.
 #' @param order Deprecated: The order of the Taylor-series approximation to be used in the
 #' estimation

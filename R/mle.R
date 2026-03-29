@@ -87,9 +87,11 @@ mleLR <- function(y, max.iter=10000, max.iter.nr=100, tol=1e-6, tol.nr=1e-6,
         }
         g <- grad(v[i,], y[i,-k], ni[i], mu, Sigma.inv)
         h <- hess(v[i,], ni[i], Sigma.inv)
-        i.inv[,,i] <- qr.solve(-h)
+        #i.inv[,,i] <- qr.solve(-h)
+        adj <- qr.solve(-h, g)
         # Newton-Raphson step
-        v[i,] <- v[i,] + i.inv[,,i]%*%g
+        #v[i,] <- v[i,] + i.inv[,,i]%*%g
+        v[i,] <- v[i,] + adj
         count.nr <- count.nr + 1
       }
     }
